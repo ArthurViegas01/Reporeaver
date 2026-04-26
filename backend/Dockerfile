@@ -55,7 +55,8 @@ ENV ENVIRONMENT=development \
     LOG_LEVEL=DEBUG
 
 WORKDIR /app
-COPY src ./src
+COPY backend/src ./src
+COPY backend/pyproject.toml* backend/requirements.txt* ./
 
 EXPOSE 8000
 
