@@ -9,6 +9,7 @@ Caching strategy:
   - README       : key gh:readme:{owner}/{repo}  TTL = settings.cache_ttl_seconds
   - Repo tree    : key gh:tree:{owner}/{repo}    TTL = settings.cache_ttl_seconds
 """
+
 from __future__ import annotations
 
 import base64
@@ -108,9 +109,7 @@ class GitHubClient:
         return GitHubRepo.model_validate(data)
 
     async def get_repo_languages(self, owner: str, repo: str) -> dict[str, int]:
-        return await self._get_cached(
-            f"gh:lang:{owner}/{repo}", f"/repos/{owner}/{repo}/languages"
-        )
+        return await self._get_cached(f"gh:lang:{owner}/{repo}", f"/repos/{owner}/{repo}/languages")
 
     async def get_readme(self, owner: str, repo: str) -> str | None:
         cache_key = f"gh:readme:{owner}/{repo}"

@@ -4,6 +4,7 @@ MCP tool registration.
 `register_tools(mcp, services)` is called once at server startup. Each tool is
 a thin adapter: validates input -> calls service layer -> returns Pydantic model.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

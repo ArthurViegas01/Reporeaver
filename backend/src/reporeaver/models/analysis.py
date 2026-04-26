@@ -1,4 +1,5 @@
 """Pydantic models for the structured outputs of MCP tools."""
+
 from __future__ import annotations
 
 from datetime import datetime

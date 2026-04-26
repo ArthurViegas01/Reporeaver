@@ -30,6 +30,7 @@ jobs:
     env:
       TF_VAR_railway_token:     ${{ secrets.RAILWAY_TOKEN }}
       TF_VAR_netlify_token:     ${{ secrets.NETLIFY_TOKEN }}
+      TF_VAR_netlify_site_id:   ${{ secrets.NETLIFY_SITE_ID }}
       TF_VAR_github_token:      ${{ secrets.GITHUB_PAT_FOR_BACKEND }}
       TF_VAR_groq_api_key:      ${{ secrets.GROQ_API_KEY }}
       TF_VAR_upstash_redis_url: ${{ secrets.UPSTASH_REDIS_URL }}
@@ -39,5 +40,4 @@ jobs:
         with:
           terraform_version: "1.9.5"
       - run: terraform init
-      - run: terraform validate -no-color
-      - run: terraform apply -auto-approve -input=false
+      - run: terraform validate -no

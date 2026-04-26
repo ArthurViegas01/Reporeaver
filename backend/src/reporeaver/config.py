@@ -4,6 +4,7 @@ Centralised configuration via Pydantic Settings.
 All secrets are read from environment variables. In production the app refuses
 to start if any required secret is missing - fail-fast over silent misconfig.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache

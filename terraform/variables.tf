@@ -151,38 +151,21 @@ variable "rate_limit_per_minute" {
 # Frontend (Netlify)
 # -----------------------------------------------------------------------------
 
-variable "frontend_repo" {
-  description = "GitHub repo (owner/name) Netlify builds from."
+variable "netlify_site_id" {
+  description = "Netlify site ID. Found at: Netlify UI → Site → Site configuration → Site ID. Set via TF_VAR_netlify_site_id."
   type        = string
-  default     = "arthurpviegas/reporeaver"
+  sensitive   = true
+  default     = "00000000-0000-0000-0000-000000000000" # placeholder; override in tfvars
 }
 
-variable "frontend_repo_branch" {
-  description = "Branch Netlify auto-deploys from."
+variable "netlify_site_name" {
+  description = "Netlify site subdomain name (e.g. 'reporeaver' → reporeaver.netlify.app). Used for output URLs."
   type        = string
-  default     = "main"
-}
-
-variable "frontend_build_base" {
-  description = "Subdirectory in the monorepo Netlify builds from."
-  type        = string
-  default     = "frontend"
-}
-
-variable "frontend_build_command" {
-  description = "Build command Netlify runs."
-  type        = string
-  default     = "npm ci && npm run build"
-}
-
-variable "frontend_publish_dir" {
-  description = "Output directory Netlify publishes (relative to frontend_build_base)."
-  type        = string
-  default     = "dist"
+  default     = "reporeaver"
 }
 
 variable "frontend_custom_domain" {
-  description = "Optional custom domain. Empty string = use Netlify default."
+  description = "Optional custom domain for the frontend. Empty string = use Netlify default."
   type        = string
   default     = ""
 }

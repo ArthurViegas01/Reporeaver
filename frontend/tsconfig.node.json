@@ -10,7 +10,7 @@
     "noEmit": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "types": ["node"]  // <--- ADICIONE ESTA LINHA
+    "types": ["node"]
   },
   "include": ["vite.config.ts"]
 }

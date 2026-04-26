@@ -14,8 +14,7 @@
 terraform {
   required_providers {
     railway = {
-      source  = "terraform-community-providers/railway"
-      version = "~> 0.5"
+      source = "terraform-community-providers/railway"
     }
   }
 }
@@ -49,6 +48,7 @@ resource "railway_service" "backend" {
 resource "railway_service_domain" "backend" {
   environment_id = railway_environment.production.id
   service_id     = railway_service.backend.id
+  subdomain      = var.backend_subdomain
 }
 
 # --- Service variables (secrets + config) -------------------------------------
@@ -81,5 +81,4 @@ resource "railway_variable" "backend" {
   name           = each.key
   value          = each.value
   service_id     = railway_service.backend.id
-  environment_id = railway_environment.production.id
-}
+  environment_id = railway_environment.produ

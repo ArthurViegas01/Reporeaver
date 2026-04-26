@@ -1,4 +1,5 @@
 """Unit tests for ProfileAnalyzer - pure-Python, no I/O, fast."""
+
 from __future__ import annotations
 
 from reporeaver.services.profile_analyzer import ProfileAnalyzer

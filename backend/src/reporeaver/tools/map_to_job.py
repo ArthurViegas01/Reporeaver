@@ -1,4 +1,5 @@
 """MCP tool: map_to_job(username, job_description). Uses LangChain + Groq."""
+
 from __future__ import annotations
 
 import json
@@ -51,9 +52,7 @@ def register(
         if not username or not username.strip():
             raise ValueError("username must not be empty")
         if not job_description or len(job_description.strip()) < 30:
-            raise ValueError(
-                "job_description must be at least 30 characters of meaningful text"
-            )
+            raise ValueError("job_description must be at least 30 characters of meaningful text")
 
         log.info("tool.map_to_job.start", username=username)
         try:
