@@ -8,7 +8,7 @@ terraform {
   required_providers {
     railway = {
       source  = "terraform-community-providers/railway"
-      version = "~> 0.5.0"
+      version = "~> 0.6.2"
     }
 
     netlify = {
