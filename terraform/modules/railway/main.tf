@@ -55,5 +55,4 @@ resource "railway_variable" "backend" {
   value          = each.value
   service_id     = railway_service.backend.id
   environment_id = railway_environment.production.id
-  project_id     = railway_project.this.id
 }
