@@ -1,0 +1,69 @@
+# =============================================================================
+# Reporeaver — root .gitignore
+# =============================================================================
+
+# --- Secrets / env files ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# --- Node / Frontend ---
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.parcel-cache/
+.vite/
+coverage/
+frontend/dist/
+
+# --- Terraform ---
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# --- Docker / OS ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- IDE ---
+.vscode/
+.idea/
+*.iml
+.history/
+
+# --- Logs ---
+*.log
+logs/

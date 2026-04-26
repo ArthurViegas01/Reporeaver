@@ -1,0 +1,108 @@
+# =============================================================================
+# Reporeaver — GitHub Portfolio Intel
+# Local development stack: FastMCP server + Redis + (optional) Frontend (Vite)
+# -----------------------------------------------------------------------------
+# Usage:
+#   cp backend/.env.example backend/.env   # fill in GITHUB_TOKEN, GROQ_API_KEY
+#   docker compose up --build
+#
+# The MCP server listens on http://localhost:8000 (Streamable HTTP transport).
+# Redis is exposed locally for debugging only (do NOT expose in production).
+# =============================================================================
+
+name: reporeaver
+
+services:
+  redis:
+    image: redis:7.2-alpine
+    container_name: reporeaver-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD:-devpassword}
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-devpassword}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - reporeaver-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: reporeaver-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      # Redis URL is composed here so devs only set REDIS_PASSWORD in .env
+      REDIS_URL: redis://:${REDIS_PASSWORD:-devpassword}@redis:6379/0
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "8000"
+      MCP_TRANSPORT: streamable-http
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    volumes:
+      # Hot-reload: mount source for fast feedback in dev
+      - ./backend/src:/app/src:ro
+      - ./backend/tests:/app/tests:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - reporeaver-net
+
+  # Frontend is intentionally optional for the local stack.
+  # Most front-end devs prefer running Vite directly on the host (`npm run dev`)
+  # for the fastest HMR. Uncomment to run it inside Docker.
+  #
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #     target: development
+  #   container_name: reporeaver-frontend
+  #   restart: unless-stopped
+  #   environment:
+  #     VITE_MCP_SERVER_URL: http://localhost:8000
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./frontend/src:/app/src:ro
+  #     - ./frontend/public:/app/public:ro
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
+  #   networks:
+  #     - reporeaver-net
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  reporeaver-net:
+    driver: bridge
