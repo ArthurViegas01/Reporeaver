@@ -1,0 +1,28 @@
+# =============================================================================
+# netlify.toml — repo root. Netlify reads this before anything else.
+# base: Netlify installs deps and runs command from this dir.
+# publish: path relative to repo root where the built assets are.
+# =============================================================================
+
+[build]
+  base    = "frontend"
+  command = "npm ci && npm run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS    = "--no-audit --no-fund"
+
+# SPA: route everything through index.html
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
