@@ -81,7 +81,7 @@ variable "github_token" {
   sensitive   = true
 
   validation {
-    condition     = length(var.github_token) >= 20
+    condition     = var.github_token == "" || length(var.github_token) >= 20
     error_message = "github_token looks too short to be a valid PAT."
   }
 }
@@ -92,7 +92,7 @@ variable "groq_api_key" {
   sensitive   = true
 
   validation {
-    condition     = length(var.groq_api_key) >= 20
+    condition     = var.groq_api_key == "" || length(var.groq_api_key) >= 20
     error_message = "groq_api_key looks too short."
   }
 }
@@ -103,7 +103,7 @@ variable "upstash_redis_url" {
   sensitive   = true
 
   validation {
-    condition     = can(regex("^rediss?://", var.upstash_redis_url))
+    condition     = var.upstash_redis_url == "" || can(regex("^rediss?://", var.upstash_redis_url))
     error_message = "upstash_redis_url must start with redis:// or rediss://"
   }
 }
