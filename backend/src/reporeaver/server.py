@@ -46,6 +46,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
     redis_client: redis_async.Redis = app.state.redis
     github: GitHubClient = app.state.github
+    mcp_session_manager = app.state.mcp_session_manager
 
     configure_logging()
     log.info(
@@ -55,19 +56,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         model=settings.groq_model,
     )
 
-    # Ping redis to ensure connection is valid
     await redis_client.ping()
-
-    # Initialize fastapi-limiter
     await FastAPILimiter.init(redis_client)
 
-    try:
-        yield
-    finally:
-        log.info("server.shutdown")
-        await github.aclose()
-        await FastAPILimiter.close()
-        await redis_client.aclose()
+    async with mcp_session_manager.run():
+        try:
+            yield
+        finally:
+            log.info("server.shutdown")
+            await github.aclose()
+            await FastAPILimiter.close()
+            await redis_client.aclose()
 
 
 def create_app() -> FastAPI:
@@ -88,16 +87,22 @@ def create_app() -> FastAPI:
         version="0.1.0",
         description="GitHub Portfolio Intel - MCP server",
         lifespan=lifespan,
+        redirect_slashes=False,
     )
+
+    mcp = _build_mcp(services, settings)
+    # session_manager is created lazily inside streamable_http_app()
+    mcp_asgi = mcp.streamable_http_app()
 
     # Stash instances on app state for lifespan and healthcheck
     app.state.settings = settings
     app.state.redis = redis_client
     app.state.github = github
+    app.state.mcp_session_manager = mcp.session_manager
 
-    # Mount the MCP app directly in app creation
-    mcp = _build_mcp(services, settings)
-    app.mount(settings.mcp_path, mcp.streamable_http_app())
+    # FastMCP v1.x streamable_http_app() has an internal route at /mcp.
+    # Mounting at "/" passes the full path to the sub-app so /mcp is matched.
+    app.mount("/", mcp_asgi)
 
     # Add Middlewares (must be outside lifespan)
     app.add_middleware(

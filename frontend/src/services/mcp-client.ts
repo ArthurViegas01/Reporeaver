@@ -12,9 +12,28 @@ const SERVER_URL = import.meta.env.VITE_MCP_SERVER_URL || "/mcp";
 let _client: Client | null = null;
 let _connecting: Promise<Client> | null = null;
 
+/**
+ * Custom fetch that intercepts GET requests to the MCP endpoint before a
+ * session exists. The FastMCP server returns 400 (not 405) for these GETs,
+ * but the SDK only handles 405 gracefully. Returning a synthetic 405 here
+ * tells the transport to skip GET SSE and use POST-only mode.
+ */
+function makeMcpFetch(mcpUrl: URL): typeof fetch {
+  return (input, init) => {
+    const reqUrl = typeof input === "string" ? input : input instanceof URL ? input.href : (input as Request).url;
+    const isGet = !init?.method || init.method.toUpperCase() === "GET";
+    if (isGet && reqUrl === mcpUrl.href) {
+      return Promise.resolve(new Response(null, { status: 405 }));
+    }
+    return fetch(input, init);
+  };
+}
+
 async function _connect(): Promise<Client> {
   const url = new URL(SERVER_URL, window.location.origin);
-  const transport = new StreamableHTTPClientTransport(url);
+  const transport = new StreamableHTTPClientTransport(url, {
+    fetch: makeMcpFetch(url),
+  });
   const client = new Client(
     { name: "reporeaver-frontend", version: "0.1.0" },
     { capabilities: {} },
