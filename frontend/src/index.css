@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: dark; }
+  body {
+    background: radial-gradient(1200px 600px at 50% -10%, #0c1220 0%, #080a0e 60%);
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm
+           shadow-[0_0_0_1px_rgba(255,255,255,0.02)];
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2
+           font-medium text-ink-950 transition hover:bg-accent-400
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2
+           text-sm text-ink-50/80 transition hover:bg-white/5;
+  }
+  .input {
+    @apply w-full rounded-lg border border-white/10 bg-ink-950/60 px-3 py-2
+           text-ink-50 placeholder:text-ink-50/40 focus:border-accent-500
+           focus:outline-none focus:ring-2 focus:ring-accent-500/30;
+  }
+  .label {
+    @apply block text-xs font-medium uppercase tracking-wider text-ink-50/60;
+  }
+}
+
+/* Markdown rendering tweaks */
+.markdown h1 { @apply mt-2 mb-3 text-xl font-bold text-ink-50; }
+.markdown h2 { @apply mt-4 mb-2 text-lg font-semibold text-accent-400; }
+.markdown h3 { @apply mt-3 mb-1 text-base font-semibold text-ink-50; }
+.markdown p  { @apply mb-2 leading-relaxed text-ink-50/90; }
+.markdown ul { @apply mb-2 list-disc pl-6 text-ink-50/90; }
+.markdown ol { @apply mb-2 list-decimal pl-6 text-ink-50/90; }
+.markdown li { @apply mb-1; }
+.markdown code { @apply rounded bg-white/10 px-1 py-0.5 font-mono text-sm; }
+.markdown a { @apply text-accent-400 underline underline-offset-2; }
