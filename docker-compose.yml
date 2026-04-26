@@ -57,6 +57,7 @@ services:
       MCP_TRANSPORT: streamable-http
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: development
+      PYTHONPATH: /app/src
     ports:
       - "8000:8000"
     volumes:

@@ -35,8 +35,11 @@ WORKDIR /app
 # pyproject.toml drives dependency installation (uv/pip-tools/poetry — your choice).
 # For now we accept either pyproject.toml or a requirements.txt.
 COPY pyproject.toml* requirements.txt* ./
+# Install dependencies only (no editable install) so this layer is cached
+# independently of source changes. The editable install happens after src/ is copied.
 RUN if [ -f pyproject.toml ]; then \
-        pip install --upgrade pip && pip install -e .; \
+        pip install --upgrade pip && pip install --no-build-isolation \
+            $(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(' '.join(d['project']['dependencies']))"); \
     elif [ -f requirements.txt ]; then \
         pip install --upgrade pip && pip install -r requirements.txt; \
     else \

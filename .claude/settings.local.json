@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:TF_VAR_railway_token=\"5ad0adad-dad2-4fc9-a72f-33b8731d7838\"; echo \"Set successfully\")"
+    ]
+  }
+}
