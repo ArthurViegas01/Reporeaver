@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     deploy_region: str = "local"
 
     # --- MCP server ----------------------------------------------------------
-    mcp_host: str = "0.0.0.0"
+    mcp_host: str = "0.0.0.0"  # noqa: S104
     mcp_port: int = 8000
     mcp_transport: Literal["streamable-http", "sse", "stdio"] = "streamable-http"
     mcp_path: str = "/mcp"

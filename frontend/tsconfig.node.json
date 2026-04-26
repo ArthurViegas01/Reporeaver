@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node"]  // <--- ADICIONE ESTA LINHA
   },
   "include": ["vite.config.ts"]
 }

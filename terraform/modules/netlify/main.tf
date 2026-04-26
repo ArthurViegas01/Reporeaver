@@ -21,12 +21,12 @@ resource "netlify_site" "this" {
   name = var.site_name
 
   repo {
-    provider      = "github"
-    repo_path     = var.repo
-    repo_branch   = var.repo_branch
-    command       = var.build_command
-    dir           = "${var.build_base}/${var.publish_dir}"
-    base          = var.build_base
+    provider    = "github"
+    repo_path   = var.repo
+    repo_branch = var.repo_branch
+    command     = var.build_command
+    dir         = "${var.build_base}/${var.publish_dir}"
+    base        = var.build_base
   }
 }
 
@@ -60,6 +60,6 @@ resource "netlify_environment_variable" "environment" {
 resource "netlify_site_domain_settings" "this" {
   count = var.custom_domain != "" ? 1 : 0
 
-  site_id      = netlify_site.this.id
+  site_id       = netlify_site.this.id
   custom_domain = var.custom_domain
 }
