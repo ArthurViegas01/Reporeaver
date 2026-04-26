@@ -1,5 +1,5 @@
 # =============================================================================
-# outputs.tf — Public surface of the Reporeaver infrastructure
+# outputs.tf - Public surface of the Reporeaver infrastructure
 # =============================================================================
 
 output "backend_public_url" {
@@ -8,7 +8,7 @@ output "backend_public_url" {
 }
 
 output "backend_health_url" {
-  description = "Health check endpoint — useful for uptime monitors / Pingdom / UptimeRobot."
+  description = "Health check endpoint for uptime monitors."
   value       = "${module.railway.backend_public_url}/health"
 }
 
@@ -23,6 +23,6 @@ output "frontend_admin_url" {
 }
 
 output "deployed_region" {
-  description = "Region where the backend and Redis are running. Should be a US region."
+  description = "Region where the backend is running. Should be a US region."
   value       = var.railway_region
 }

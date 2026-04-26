@@ -4,6 +4,7 @@ Centralised configuration via Pydantic Settings.
 All secrets are read from environment variables. In production the app refuses
 to start if any required secret is missing - fail-fast over silent misconfig.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -29,7 +30,7 @@ class Settings(BaseSettings):
     deploy_region: str = "local"
 
     # --- MCP server ----------------------------------------------------------
-    mcp_host: str = "0.0.0.0"
+    mcp_host: str = "0.0.0.0"  # noqa: S104
     mcp_port: int = 8000
     mcp_transport: Literal["streamable-http", "sse", "stdio"] = "streamable-http"
     mcp_path: str = "/mcp"

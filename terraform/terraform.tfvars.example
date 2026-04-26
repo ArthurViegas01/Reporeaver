@@ -8,6 +8,7 @@
 #   export TF_VAR_github_token="ghp_..."
 #   export TF_VAR_groq_api_key="gsk_..."
 #   export TF_VAR_upstash_redis_url="rediss://default:...@us1-XXX.upstash.io:6379"
+#   export TF_VAR_netlify_site_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 #
 # If you must use a tfvars file, it is already in .gitignore.
 # =============================================================================
@@ -30,15 +31,15 @@ railway_region = "us-east4"
 # Public GHCR image — built by GitHub Actions later. Free for public repos.
 backend_image         = "ghcr.io/arthurpviegas/reporeaver-backend:latest"
 backend_cpu           = 1
-backend_memory_mb     = 512        # smaller default → less Railway credit burn
+backend_memory_mb     = 512 # smaller default → less Railway credit burn
 backend_replicas      = 1
 rate_limit_per_minute = 30
 log_level             = "INFO"
 
-# --- Frontend -----------------------------------------------------------------
-frontend_repo          = "arthurpviegas/reporeaver"
-frontend_repo_branch   = "main"
-frontend_build_base    = "frontend"
-frontend_build_command = "npm ci && npm run build"
-frontend_publish_dir   = "dist"
+# --- Frontend (Netlify) -------------------------------------------------------
+# Step 1: Connect GitHub repo at app.netlify.com → "Import from Git"
+#         Use base dir = frontend/, publish dir = dist/
+# Step 2: Copy the Site ID from Site configuration and set it below.
+netlify_site_name = "reporeaver" # becomes reporeaver.netlify.app
+# netlify_site_id   = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # set via TF_VAR
 # frontend_custom_domain = "reporeaver.example.com"

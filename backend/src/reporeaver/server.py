@@ -4,10 +4,11 @@ ASGI entrypoint. Composes:
   - FastMCP server mounted under /mcp via streamable HTTP transport
   - RateLimitMiddleware applied to all incoming requests
 """
+
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 import redis.asyncio as redis_async
 from fastapi import FastAPI
@@ -127,7 +128,7 @@ def create_app() -> FastAPI:
         try:
             await app.state.redis.ping()
             redis_ok = True
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
         return {
             "status": "ok" if redis_ok else "degraded",

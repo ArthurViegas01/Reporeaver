@@ -1,4 +1,5 @@
 """Pydantic models mirroring the subset of GitHub API responses we consume."""
+
 from __future__ import annotations
 
 from datetime import datetime

@@ -1,4 +1,5 @@
 """Thin async Redis wrapper with JSON helpers + namespacing."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -19,7 +20,7 @@ class CacheService:
         self._ns = namespace
 
     @classmethod
-    async def from_url(cls, url: str, namespace: str = "reporeaver") -> "CacheService":
+    async def from_url(cls, url: str, namespace: str = "reporeaver") -> CacheService:
         client = redis.from_url(url, encoding="utf-8", decode_responses=False)
         # Validate connectivity early so the app fails fast on misconfig.
         await client.ping()

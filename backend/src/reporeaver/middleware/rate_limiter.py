@@ -8,9 +8,10 @@ Why custom (instead of pure fastapi-limiter):
   so we implement the same fixed-window-per-minute logic at the middleware
   layer using Redis INCR + EXPIRE atomically.
 """
+
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 import redis.asyncio as redis
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -62,9 +63,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._ns = namespace
         self._script = redis_client.register_script(_RATE_LIMIT_LUA)
 
-    async def dispatch(
-        self, request: Request, call_next: Callable
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
         path = request.url.path
         if any(path.startswith(p) for p in self._exempt):
             return await call_next(request)
@@ -99,8 +98,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
         response.headers["X-RateLimit-Limit"] = str(self._per_minute)
-        response.headers["X-RateLimit-Remaining"] = str(
-            max(self._per_minute - int(current), 0)
-        )
+        response.headers["X-RateLimit-Remaining"] = str(max(self._per_minute - int(current), 0))
         response.headers["X-RateLimit-Reset"] = str(retry_after)
         return response

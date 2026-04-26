@@ -6,6 +6,7 @@ Two execution modes:
                        summary so the MCP client can render it incrementally)
   - acomplete(prompt): single-shot completion (used by map_to_job)
 """
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -46,9 +47,7 @@ class LLMService:
             if content:
                 yield content
 
-    async def map_to_job_structured(
-        self, profile_summary: str, job_description: str
-    ) -> dict:
+    async def map_to_job_structured(self, profile_summary: str, job_description: str) -> dict:
         """
         Use LangChain to produce a structured JSON match.
 

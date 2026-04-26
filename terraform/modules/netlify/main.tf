@@ -1,65 +1,44 @@
 # =============================================================================
 # modules/netlify/main.tf
 # -----------------------------------------------------------------------------
-# Provisions a Netlify site connected to the GitHub monorepo, scoped to the
-# /frontend subdirectory. Netlify is a global CDN, so no region knob applies
-# — the SP region restriction is only relevant for Railway.
+# Manages environment variables and domain settings for a Netlify site.
 #
-# Provider: netlify/netlify (~> 0.2)
+# IMPORTANT: netlify/netlify v0.4+ does NOT support resource "netlify_site".
+# The site must be connected to the GitHub repo via the Netlify UI (or CLI),
+# which triggers automatic deploys on every push to the target branch.
+# Build configuration is read from frontend/netlify.toml in the repository.
+#
+# To get the site_id: Netlify UI -> Site -> Site configuration -> Site ID.
 # =============================================================================
 
 terraform {
   required_providers {
     netlify = {
       source  = "netlify/netlify"
-      version = "~> 0.2"
+      version = "~> 0.4.0"
     }
   }
 }
 
-resource "netlify_site" "this" {
-  name = var.site_name
-
-  repo {
-    provider      = "github"
-    repo_path     = var.repo
-    repo_branch   = var.repo_branch
-    command       = var.build_command
-    dir           = "${var.build_base}/${var.publish_dir}"
-    base          = var.build_base
-  }
-}
-
-# --- Environment variables for the build ---------------------------------------
-# These are injected at build-time by Vite (everything starting with VITE_).
+# --- Environment variables injected into the Netlify build ------------------
 
 resource "netlify_environment_variable" "backend_url" {
-  site_id = netlify_site.this.id
+  site_id = var.site_id
   key     = "VITE_MCP_SERVER_URL"
-  values = [
-    {
-      value   = var.backend_public_url
-      context = "all"
-    }
-  ]
+  values  = [{ value = var.backend_public_url, context = "all" }]
 }
 
-resource "netlify_environment_variable" "environment" {
-  site_id = netlify_site.this.id
+resource "netlify_environment_variable" "environment_name" {
+  site_id = var.site_id
   key     = "VITE_ENVIRONMENT"
-  values = [
-    {
-      value   = var.environment
-      context = "all"
-    }
-  ]
+  values  = [{ value = var.environment, context = "all" }]
 }
 
-# --- Optional custom domain ----------------------------------------------------
+# --- Optional custom domain --------------------------------------------------
 
 resource "netlify_site_domain_settings" "this" {
   count = var.custom_domain != "" ? 1 : 0
 
-  site_id      = netlify_site.this.id
+  site_id       = var.site_id
   custom_domain = var.custom_domain
 }

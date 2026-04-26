@@ -1,11 +1,13 @@
 """Pure-Python analytics over GitHub data. Easy to unit-test without HTTP."""
+
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from reporeaver.models.analysis import LanguageStat, ProfileAnalysis
 from reporeaver.models.github import GitHubRepo, GitHubUser
+
 
 # Repos with these properties are noise for portfolio analysis.
 def _is_noise(repo: GitHubRepo) -> bool:
@@ -28,9 +30,7 @@ class ProfileAnalyzer:
 
         total_stars = sum(r.stargazers_count for r in active)
 
-        lang_counter: Counter[str] = Counter(
-            r.language for r in active if r.language is not None
-        )
+        lang_counter: Counter[str] = Counter(r.language for r in active if r.language is not None)
         total_with_lang = sum(lang_counter.values()) or 1
         top_languages = [
             LanguageStat(
@@ -79,5 +79,5 @@ class ProfileAnalyzer:
                 for r in recent
             ],
             profile_url=user.html_url,
-            analyzed_at=datetime.now(timezone.utc),
+            analyzed_at=datetime.now(UTC),
         )

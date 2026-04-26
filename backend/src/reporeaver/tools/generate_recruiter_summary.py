@@ -5,6 +5,7 @@ Streaming uses Context.report_progress to emit incremental tokens to the client.
 The final tool result is the full assembled Markdown - clients can choose to
 either render progress events in real time or wait for the final return value.
 """
+
 from __future__ import annotations
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -58,14 +59,18 @@ def register(
         profile = analyzer.analyze(user, repos)
 
         # Build the LLM prompt from the structured profile.
-        langs = ", ".join(
-            f"{ls.language} {ls.percentage}%" for ls in profile.top_languages
-        ) or "none reported"
-        top = "\n".join(
-            f"- {r['name']} ({r.get('stars', 0)} stars, "
-            f"{r.get('language') or 'mixed'}): {r.get('description') or 'no description'}"
-            for r in profile.most_starred[:5]
-        ) or "- (no starred repos)"
+        langs = (
+            ", ".join(f"{ls.language} {ls.percentage}%" for ls in profile.top_languages)
+            or "none reported"
+        )
+        top = (
+            "\n".join(
+                f"- {r['name']} ({r.get('stars', 0)} stars, "
+                f"{r.get('language') or 'mixed'}): {r.get('description') or 'no description'}"
+                for r in profile.most_starred[:5]
+            )
+            or "- (no starred repos)"
+        )
 
         user_prompt = (
             f"User: @{profile.username} ({profile.name or 'no display name'})\n"

@@ -1,4 +1,5 @@
 """Pydantic models for GitHub data and analysis outputs."""
+
 from reporeaver.models.analysis import (
     JobMatchResult,
     LanguageStat,
