@@ -1,0 +1,43 @@
+name: infra-apply
+
+# Manual deploy gate. Run from the Actions tab when you want to apply.
+# Refuses to run from any branch except main, just to keep things sane.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "APPLY" to confirm'
+        required: true
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infra-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event.inputs.confirm == 'APPLY'
+    timeout-minutes: 20
+    environment: production   # configure required reviewers in repo settings
+    defaults:
+      run:
+        working-directory: terraform
+    env:
+      TF_VAR_railway_token:     ${{ secrets.RAILWAY_TOKEN }}
+      TF_VAR_netlify_token:     ${{ secrets.NETLIFY_TOKEN }}
+      TF_VAR_github_token:      ${{ secrets.GITHUB_PAT_FOR_BACKEND }}
+      TF_VAR_groq_api_key:      ${{ secrets.GROQ_API_KEY }}
+      TF_VAR_upstash_redis_url: ${{ secrets.UPSTASH_REDIS_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+      - run: terraform init
+      - run: terraform validate -no-color
+      - run: terraform apply -auto-approve -input=false
