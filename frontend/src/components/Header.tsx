@@ -16,10 +16,10 @@ export default function Header({ status, error, health }: Props) {
       <div>
         <div className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <Activity className="h-6 w-6 text-accent-400" />
-          Reporeaver
+          GitHub Portfolio Intel
         </div>
         <div className="mt-1 text-sm text-ink-50/60">
-          GitHub Portfolio Intel - MCP client demo
+          MCP client demo
         </div>
       </div>
 
