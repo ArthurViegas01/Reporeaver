@@ -40,4 +40,5 @@ jobs:
         with:
           terraform_version: "1.9.5"
       - run: terraform init
-      - run: terraform validate -no
+      - run: terraform validate -no-color
+      - run: terraform apply -auto-approve -input=false

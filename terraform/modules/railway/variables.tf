@@ -62,3 +62,8 @@ variable "log_level" {
   type    = string
   default = "INFO"
 }
+
+variable "backend_subdomain" {
+  type        = string
+  description = "O subdomínio para o serviço de backend"
+}

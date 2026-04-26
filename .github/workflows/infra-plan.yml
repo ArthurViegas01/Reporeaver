@@ -69,4 +69,5 @@ jobs:
             });
 
       - name: Fail if plan errored
- 
+        if: steps.plan.outcome == 'failure'
+        run: exit 1

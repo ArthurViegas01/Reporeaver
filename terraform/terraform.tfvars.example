@@ -39,4 +39,7 @@ log_level             = "INFO"
 # --- Frontend (Netlify) -------------------------------------------------------
 # Step 1: Connect GitHub repo at app.netlify.com → "Import from Git"
 #         Use base dir = frontend/, publish dir = dist/
-# Step 2: Copy the Site ID from Site configuration and set it 
+# Step 2: Copy the Site ID from Site configuration and set it below.
+netlify_site_name = "reporeaver" # becomes reporeaver.netlify.app
+# netlify_site_id   = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # set via TF_VAR
+# frontend_custom_domain = "reporeaver.example.com"
