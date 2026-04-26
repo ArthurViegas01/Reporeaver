@@ -5,7 +5,7 @@
 #   1. A project + a "production" environment
 #   2. FastMCP backend service from a Docker image, with a public domain
 #
-# Cache (Redis) is intentionally NOT hosted on Railway — Upstash's free tier
+# Cache (Redis) is intentionally NOT hosted on Railway -- Upstash free tier
 # is permanent (10k commands/day, 256 MB) and avoids burning Railway credit.
 #
 # Provider: terraform-community-providers/railway (~> 0.5)
@@ -25,7 +25,7 @@ terraform {
 
 resource "railway_project" "this" {
   name        = var.project_name
-  description = "GitHub Portfolio Intel — MCP server (region: ${var.region})"
+  description = "GitHub Portfolio Intel -- MCP server (region: ${var.region})"
   private     = false
 }
 
@@ -81,4 +81,6 @@ resource "railway_variable" "backend" {
   name           = each.key
   value          = each.value
   service_id     = railway_service.backend.id
-  environment_id = railway_environment.produ
+  environment_id = railway_environment.production.id
+  project_id     = railway_project.this.id
+}
