@@ -33,7 +33,7 @@ dependencies = [
 
   # Cache / rate limiting
   "redis[hiredis]>=5.0.0",
-  "fastapi-limiter==0.1.6",
+  "fastapi-limiter==0.2.0",
 
   # LLM
   "groq>=0.11.0",
