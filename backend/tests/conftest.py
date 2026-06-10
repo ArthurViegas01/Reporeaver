@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from reporeaver.models.github import GitHubRepo, GitHubUser
+from devscope.models.github import GitHubRepo, GitHubUser
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def sample_repos() -> list[GitHubRepo]:
             full_name="octocat/legacy-fork",
             language="Java",
             stargazers_count=999,
-            **{**base, "fork": True},  # should be filtered out
+            **{**base, "fork": True},
         ),
         GitHubRepo(
             id=4,
@@ -73,6 +73,6 @@ def sample_repos() -> list[GitHubRepo]:
             full_name="octocat/archived",
             language="Python",
             stargazers_count=10000,
-            **{**base, "archived": True},  # should be filtered out
+            **{**base, "archived": True},
         ),
     ]

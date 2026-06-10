@@ -1,4 +1,4 @@
-"""Pydantic models mirroring the subset of GitHub API responses we consume."""
+"""Pydantic models for the subset of GitHub API responses we consume."""
 
 from __future__ import annotations
 

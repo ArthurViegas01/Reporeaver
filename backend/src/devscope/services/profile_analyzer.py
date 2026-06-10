@@ -1,21 +1,20 @@
-"""Pure-Python analytics over GitHub data. Easy to unit-test without HTTP."""
+"""Pure-Python analytics over GitHub data. Easily unit-tested without HTTP."""
 
 from __future__ import annotations
 
 from collections import Counter
 from datetime import UTC, datetime
 
-from reporeaver.models.analysis import LanguageStat, ProfileAnalysis
-from reporeaver.models.github import GitHubRepo, GitHubUser
+from devscope.models.analysis import LanguageStat, ProfileAnalysis
+from devscope.models.github import GitHubRepo, GitHubUser
 
 
-# Repos with these properties are noise for portfolio analysis.
 def _is_noise(repo: GitHubRepo) -> bool:
     return repo.fork or repo.archived or repo.private
 
 
 class ProfileAnalyzer:
-    """Compute profile-level metrics from GitHub user + repos."""
+    """Compute profile-level metrics from a GitHub user and their repos."""
 
     def analyze(
         self,

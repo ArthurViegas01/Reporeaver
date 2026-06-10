@@ -1,30 +1,25 @@
 # =============================================================================
-# main.tf - Reporeaver root composition
-# -----------------------------------------------------------------------------
+# main.tf - Devscope root composition
+#
 # Wires together the Railway (backend) and Netlify (frontend) modules.
-# Cache (Redis) lives outside Terraform on Upstash's free tier.
+# Redis lives outside Terraform on Upstash's free tier.
 #
 # Netlify site setup (one-time, manual):
-#   1. Go to app.netlify.com -> "Add new site" -> "Import from Git"
-#   2. Connect the GitHub repo, set base = frontend/, publish = dist/
-#   3. Copy the Site ID from Site configuration and set netlify_site_id in tfvars
+#   1. Go to app.netlify.com -> Add new site -> Import from Git
+#   2. Connect the repo; Netlify reads build config from netlify.toml
+#   3. Copy the Site ID from Site configuration and set netlify_site_id via
+#      TF_VAR_netlify_site_id or terraform.tfvars
+#
+# State backend: configure a remote backend (Terraform Cloud, S3, or GCS)
+# before running apply in CI. Local state is discarded when the runner exits.
+# See docs/DEPLOY.md for setup instructions.
 # =============================================================================
 
 locals {
   resource_prefix   = "${var.project_name}-${var.environment}"
   backend_subdomain = "${var.project_name}-api-${var.environment}"
-
-  common_tags = {
-    project     = var.project_name
-    environment = var.environment
-    managed_by  = "terraform"
-    region      = var.railway_region
-  }
+  netlify_frontend_url = "https://${var.netlify_site_name}.netlify.app"
 }
-
-# -----------------------------------------------------------------------------
-# Railway: backend (FastMCP)
-# -----------------------------------------------------------------------------
 
 module "railway" {
   source = "./modules/railway"
@@ -43,11 +38,8 @@ module "railway" {
   upstash_redis_url     = var.upstash_redis_url
   rate_limit_per_minute = var.rate_limit_per_minute
   log_level             = var.log_level
+  cors_origins          = local.netlify_frontend_url
 }
-
-# -----------------------------------------------------------------------------
-# Netlify: frontend (Vite/React)
-# -----------------------------------------------------------------------------
 
 module "netlify" {
   source = "./modules/netlify"
@@ -56,7 +48,7 @@ module "netlify" {
   site_name     = var.netlify_site_name
   custom_domain = var.frontend_custom_domain
 
-  backend_public_url = module.railway.backend_public_url
+  backend_public_url = "${module.railway.backend_public_url}/mcp"
 
   environment = var.environment
 }

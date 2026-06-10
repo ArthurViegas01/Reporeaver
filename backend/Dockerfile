@@ -1,19 +1,21 @@
 # =============================================================================
-# Reporeaver — Backend Dockerfile (multi-stage)
-# -----------------------------------------------------------------------------
-# Targets:
-#   - development : hot-reload via uvicorn --reload, source mounted as a volume.
-#   - production  : slim non-root runtime, pre-compiled deps, no build tools.
+# Devscope Backend Dockerfile (multi-stage)
 #
-# Build (from repo root):
-#   docker build --target development -t reporeaver-backend:dev -f backend/Dockerfile .
-#   docker build --target production  -t reporeaver-backend:latest -f backend/Dockerfile .
+# Build context: ./backend  (both docker-compose and CI use this)
+#
+# Targets:
+#   development  hot-reload via uvicorn --reload, source mounted as a volume
+#   production   slim non-root runtime, installed package, no build tools
+#
+# Usage (from repo root):
+#   docker build --target development -t devscope-backend:dev  -f backend/Dockerfile backend/
+#   docker build --target production  -t devscope-backend:prod -f backend/Dockerfile backend/
 # =============================================================================
 
 ARG PYTHON_VERSION=3.12-slim-bookworm
 
 # ---------------------------------------------------------------------------
-# Stage 1: builder — install deps into a virtualenv we'll copy into runtime
+# Stage 1: builder - install package + all deps into a virtualenv
 # ---------------------------------------------------------------------------
 FROM python:${PYTHON_VERSION} AS builder
 
@@ -25,46 +27,44 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends build-essential curl \
+ && apt-get install -y --no-install-recommends build-essential \
  && rm -rf /var/lib/apt/lists/*
 
 RUN python -m venv "$VIRTUAL_ENV"
 
-WORKDIR /app
+WORKDIR /build
 
-# Ajuste monorepo: Copia os arquivos de dependências da pasta backend/
-COPY backend/pyproject.toml* backend/requirements.txt* ./
+# Copy package manifest and source, then install in one layer.
+# Deps are resolved once here; both dev and prod stages inherit this venv.
+COPY pyproject.toml README.md* ./
+COPY src ./src
 
-# Instala as dependências (lendo o arquivo que foi copiado para a raiz /app do container)
-RUN if [ -f pyproject.toml ]; then \
-        pip install --upgrade pip && pip install --no-build-isolation \
-            $(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(' '.join(d['project']['dependencies']))"); \
-    elif [ -f requirements.txt ]; then \
-        pip install --upgrade pip && pip install -r requirements.txt; \
-    else \
-        echo "No pyproject.toml or requirements.txt found."; \
-    fi
+RUN pip install --upgrade pip setuptools wheel \
+ && pip install --no-build-isolation .
 
 # ---------------------------------------------------------------------------
-# Stage 2: development — keep build tools, mount source as a volume
+# Stage 2: development - inherits installed venv, hot-reloads from volume
 # ---------------------------------------------------------------------------
 FROM builder AS development
 
 ENV ENVIRONMENT=development \
-    LOG_LEVEL=DEBUG
+    LOG_LEVEL=DEBUG \
+    PYTHONPATH=/app/src
 
 WORKDIR /app
-# Ajuste monorepo: Copia o código fonte da pasta backend/src
-COPY backend/src ./src
+
+# Source is mounted via docker-compose volume for hot-reload.
+# Copy here so the image works standalone too.
+COPY src ./src
 
 EXPOSE 8000
 
-CMD ["python", "-m", "uvicorn", "reporeaver.server:app", \
+CMD ["python", "-m", "uvicorn", "devscope.server:app", \
      "--host", "0.0.0.0", "--port", "8000", \
      "--reload", "--reload-dir", "/app/src"]
 
 # ---------------------------------------------------------------------------
-# Stage 3: production — slim, non-root, no build tools
+# Stage 3: production - slim, non-root, package installed in venv
 # ---------------------------------------------------------------------------
 FROM python:${PYTHON_VERSION} AS production
 
@@ -77,19 +77,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN groupadd --system --gid 1001 app \
  && useradd  --system --uid 1001 --gid app --no-create-home app
 
+# Copy the complete venv (with devscope installed as a package).
 COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
-
-# Ajuste monorepo: Copia o código fonte da pasta backend/src com as permissões corretas
-COPY --chown=app:app backend/src ./src
-
 USER app
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status==200 else 1)" || exit 1
 
-CMD ["python", "-m", "uvicorn", "reporeaver.server:app", \
+CMD ["python", "-m", "uvicorn", "devscope.server:app", \
      "--host", "0.0.0.0", "--port", "8000", \
      "--workers", "2"]

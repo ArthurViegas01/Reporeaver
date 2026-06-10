@@ -1,13 +1,13 @@
 """
 Async GitHub REST API client with Redis-backed caching.
 
-Caching strategy:
-  - User profile : key gh:user:{username}        TTL = settings.cache_ttl_seconds
-  - User repos   : key gh:repos:{username}       TTL = settings.cache_ttl_seconds
-  - Single repo  : key gh:repo:{owner}/{repo}    TTL = settings.cache_ttl_seconds
-  - Languages    : key gh:lang:{owner}/{repo}    TTL = settings.cache_ttl_seconds
-  - README       : key gh:readme:{owner}/{repo}  TTL = settings.cache_ttl_seconds
-  - Repo tree    : key gh:tree:{owner}/{repo}    TTL = settings.cache_ttl_seconds
+Cache keys:
+  gh:user:{username}        TTL = settings.cache_ttl_seconds
+  gh:repos:{username}       TTL = settings.cache_ttl_seconds
+  gh:repo:{owner}/{repo}    TTL = settings.cache_ttl_seconds
+  gh:lang:{owner}/{repo}    TTL = settings.cache_ttl_seconds
+  gh:readme:{owner}/{repo}  TTL = settings.cache_ttl_seconds
+  gh:tree:{owner}/{repo}    TTL = settings.cache_ttl_seconds
 """
 
 from __future__ import annotations
@@ -17,15 +17,15 @@ from typing import Any
 
 import httpx
 
-from reporeaver.config import Settings
-from reporeaver.logging_config import get_logger
-from reporeaver.models.github import GitHubRepo, GitHubUser
-from reporeaver.services.cache_service import CacheService
+from devscope.config import Settings
+from devscope.logging_config import get_logger
+from devscope.models.github import GitHubRepo, GitHubUser
+from devscope.services.cache_service import CacheService
 
 log = get_logger(__name__)
 
 PER_PAGE = 100
-MAX_PAGES = 5  # = 500 repos max - good enough for portfolio analysis
+MAX_PAGES = 5
 
 
 class GitHubAPIError(RuntimeError):
@@ -42,7 +42,7 @@ class GitHubClient:
                 "Authorization": f"Bearer {settings.github_token.get_secret_value()}",
                 "Accept": "application/vnd.github+json",
                 "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "reporeaver/0.1",
+                "User-Agent": "devscope/0.1",
             },
             timeout=httpx.Timeout(15.0, connect=5.0),
             http2=False,
@@ -50,8 +50,6 @@ class GitHubClient:
 
     async def aclose(self) -> None:
         await self._http.aclose()
-
-    # -- Internal helpers -----------------------------------------------------
 
     async def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
         try:
@@ -76,8 +74,6 @@ class GitHubClient:
         await self._cache.set_json(cache_key, data, self._settings.cache_ttl_seconds)
         log.debug("github.cache_miss", key=cache_key)
         return data
-
-    # -- Public API -----------------------------------------------------------
 
     async def get_user(self, username: str) -> GitHubUser:
         data = await self._get_cached(f"gh:user:{username}", f"/users/{username}")
@@ -109,7 +105,9 @@ class GitHubClient:
         return GitHubRepo.model_validate(data)
 
     async def get_repo_languages(self, owner: str, repo: str) -> dict[str, int]:
-        return await self._get_cached(f"gh:lang:{owner}/{repo}", f"/repos/{owner}/{repo}/languages")
+        return await self._get_cached(
+            f"gh:lang:{owner}/{repo}", f"/repos/{owner}/{repo}/languages"
+        )
 
     async def get_readme(self, owner: str, repo: str) -> str | None:
         cache_key = f"gh:readme:{owner}/{repo}"
@@ -130,7 +128,7 @@ class GitHubClient:
         return text or None
 
     async def list_repo_root(self, owner: str, repo: str, branch: str = "main") -> list[str]:
-        """List filenames at the root of a repo - used for arch signal detection."""
+        """List filenames at the repo root for architecture signal detection."""
         cache_key = f"gh:tree:{owner}/{repo}"
         cached = await self._cache.get_json(cache_key)
         if cached is not None:

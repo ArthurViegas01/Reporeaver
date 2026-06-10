@@ -1,12 +1,12 @@
 """Pydantic models for GitHub data and analysis outputs."""
 
-from reporeaver.models.analysis import (
+from devscope.models.analysis import (
     JobMatchResult,
     LanguageStat,
     ProfileAnalysis,
     RepositoryEvaluation,
 )
-from reporeaver.models.github import GitHubRepo, GitHubUser
+from devscope.models.github import GitHubRepo, GitHubUser
 
 __all__ = [
     "GitHubRepo",

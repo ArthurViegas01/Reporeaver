@@ -1,8 +1,8 @@
 """
 Centralised configuration via Pydantic Settings.
 
-All secrets are read from environment variables. In production the app refuses
-to start if any required secret is missing - fail-fast over silent misconfig.
+All secrets come from environment variables. The app refuses to start if any
+required secret is missing - fail-fast over silent misconfig.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Runtime configuration loaded from environment."""
+    """Runtime configuration loaded from environment variables."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -24,32 +24,37 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # --- Environment ---------------------------------------------------------
+    # Environment
     environment: Literal["development", "staging", "production"] = "development"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     deploy_region: str = "local"
 
-    # --- MCP server ----------------------------------------------------------
+    # Server
     mcp_host: str = "0.0.0.0"  # noqa: S104
     mcp_port: int = 8000
-    mcp_transport: Literal["streamable-http", "sse", "stdio"] = "streamable-http"
-    mcp_path: str = "/mcp"
 
-    # --- Integrations --------------------------------------------------------
+    # Integrations
     github_token: SecretStr = Field(..., description="GitHub PAT")
     github_api_base: str = "https://api.github.com"
 
     groq_api_key: SecretStr = Field(..., description="Groq API key")
-    groq_model: str = "llama-3.1-70b-versatile"
+    groq_model: str = "llama-3.3-70b-versatile"
 
-    # --- Redis ---------------------------------------------------------------
-    redis_url: RedisDsn = Field(..., description="Redis connection URL (redis:// or rediss://)")
-    cache_ttl_seconds: int = 3600  # 1 hour
+    # Redis
+    redis_url: RedisDsn = Field(..., description="Redis connection URL")
+    cache_ttl_seconds: int = 3600
 
-    # --- Rate limiting -------------------------------------------------------
+    # Rate limiting
     rate_limit_per_minute: int = 30
+    trusted_proxy_depth: int = Field(
+        1,
+        description=(
+            "Number of trusted reverse proxy hops in X-Forwarded-For. "
+            "Set to 1 when behind Railway or any single load balancer."
+        ),
+    )
 
-    # --- CORS ----------------------------------------------------------------
+    # CORS
     cors_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://localhost:3000"]
     )
@@ -57,7 +62,6 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_csv(cls, v: object) -> object:
-        """Allow CORS_ORIGINS to come as a comma-separated string."""
         if isinstance(v, str):
             return [s.strip() for s in v.split(",") if s.strip()]
         return v
@@ -69,5 +73,4 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Cached settings accessor. The cache makes Settings effectively a singleton."""
     return Settings()  # type: ignore[call-arg]

@@ -1,12 +1,12 @@
 name: backend-build-push
 
 # Builds the backend Docker image and pushes it to GHCR.
-# Tags pushed:
-#   - sha-<7chars> (immutable, every commit)
-#   - latest        (only on main)
-#   - <git tag>     (when a v* tag is pushed)
+# Tags:
+#   sha-<7chars>  immutable, every commit on main
+#   latest        only on main branch
+#   <git tag>     when a v* tag is pushed
 #
-# Railway then pulls ghcr.io/<owner>/reporeaver-backend:latest.
+# Railway pulls ghcr.io/<owner>/devscope-backend:latest after each push.
 
 on:
   push:
@@ -27,7 +27,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/reporeaver-backend
+  IMAGE_NAME: ${{ github.repository_owner }}/devscope-backend
 
 jobs:
   build-and-push:
@@ -87,8 +87,6 @@ jobs:
           RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
         if: env.RAILWAY_TOKEN != '' && env.RAILWAY_SERVICE_ID != ''
         run: |
-          # Optional: kicks Railway to redeploy with the freshly-pushed :latest tag.
-          # Skipped silently when secrets aren't set (so PR forks don't fail).
           curl -fsS -X POST https://backboard.railway.app/graphql/v2 \
             -H "Authorization: Bearer $RAILWAY_TOKEN" \
             -H "Content-Type: application/json" \

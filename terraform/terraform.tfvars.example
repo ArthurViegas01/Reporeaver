@@ -1,7 +1,7 @@
 # =============================================================================
-# terraform.tfvars.example  (copy to terraform.tfvars — DO NOT COMMIT)
-# -----------------------------------------------------------------------------
-# Preferred: pass secrets via env vars instead of putting them in this file:
+# terraform.tfvars.example  (copy to terraform.tfvars - DO NOT COMMIT)
+#
+# Preferred: pass secrets via environment variables instead:
 #
 #   export TF_VAR_railway_token="..."
 #   export TF_VAR_netlify_token="..."
@@ -10,36 +10,34 @@
 #   export TF_VAR_upstash_redis_url="rediss://default:...@us1-XXX.upstash.io:6379"
 #   export TF_VAR_netlify_site_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 #
-# If you must use a tfvars file, it is already in .gitignore.
+# If you use a tfvars file, it is gitignored.
 # =============================================================================
 
-project_name = "reporeaver"
+project_name = "devscope"
 environment  = "production"
 
-# Region policy: US ONLY. São Paulo (gru) is BANNED.
+# Region policy: US only. Sao Paulo (gru) is forbidden.
 # Allowed: us-west1 | us-west2 | us-east4
 railway_region = "us-east4"
 
-# --- Secrets (use TF_VAR_* env vars in real life) -----------------------------
+# Secrets - use TF_VAR_* in real deploys
 # railway_token     = "REPLACE_ME"
 # netlify_token     = "REPLACE_ME"
 # github_token      = "ghp_REPLACE_ME"
 # groq_api_key      = "gsk_REPLACE_ME"
 # upstash_redis_url = "rediss://default:REPLACE_ME@us1-XXX.upstash.io:6379"
 
-# --- Backend ------------------------------------------------------------------
-# Public GHCR image — built by GitHub Actions later. Free for public repos.
-backend_image         = "ghcr.io/arthurpviegas/reporeaver-backend:latest"
+# Backend
+backend_image         = "ghcr.io/ArthurViegas01/devscope-backend:latest"
 backend_cpu           = 1
-backend_memory_mb     = 512 # smaller default → less Railway credit burn
+backend_memory_mb     = 512
 backend_replicas      = 1
 rate_limit_per_minute = 30
 log_level             = "INFO"
 
-# --- Frontend (Netlify) -------------------------------------------------------
-# Step 1: Connect GitHub repo at app.netlify.com → "Import from Git"
-#         Use base dir = frontend/, publish dir = dist/
-# Step 2: Copy the Site ID from Site configuration and set it below.
-netlify_site_name = "reporeaver" # becomes reporeaver.netlify.app
+# Frontend (Netlify)
+# Step 1: Connect GitHub repo at app.netlify.com -> Import from Git
+# Step 2: Copy the Site ID from Site configuration and set it below
+netlify_site_name = "devscope"
 # netlify_site_id   = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # set via TF_VAR
-# frontend_custom_domain = "reporeaver.example.com"
+# frontend_custom_domain = "devscope.yourdomain.com"

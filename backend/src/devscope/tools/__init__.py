@@ -1,8 +1,8 @@
 """
 MCP tool registration.
 
-`register_tools(mcp, services)` is called once at server startup. Each tool is
-a thin adapter: validates input -> calls service layer -> returns Pydantic model.
+register_tools(mcp, services) is called once at server startup. Each tool is
+a thin adapter: validate input, call service layer, return a Pydantic model.
 """
 
 from __future__ import annotations
@@ -11,13 +11,13 @@ from dataclasses import dataclass
 
 from mcp.server.fastmcp import FastMCP
 
-from reporeaver.services import GitHubClient, LLMService, ProfileAnalyzer
-from reporeaver.tools.analyze_profile import register as register_analyze_profile
-from reporeaver.tools.evaluate_repository import register as register_evaluate_repo
-from reporeaver.tools.generate_recruiter_summary import (
+from devscope.services import GitHubClient, LLMService, ProfileAnalyzer
+from devscope.tools.analyze_profile import register as register_analyze_profile
+from devscope.tools.evaluate_repository import register as register_evaluate_repo
+from devscope.tools.generate_recruiter_summary import (
     register as register_generate_summary,
 )
-from reporeaver.tools.map_to_job import register as register_map_to_job
+from devscope.tools.map_to_job import register as register_map_to_job
 
 
 @dataclass

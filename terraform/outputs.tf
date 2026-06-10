@@ -1,5 +1,5 @@
 # =============================================================================
-# outputs.tf - Public surface of the Reporeaver infrastructure
+# outputs.tf - Public surface of the devscope infrastructure
 # =============================================================================
 
 output "backend_public_url" {

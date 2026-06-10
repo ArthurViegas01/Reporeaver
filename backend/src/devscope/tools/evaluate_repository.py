@@ -6,13 +6,12 @@ import re
 
 from mcp.server.fastmcp import FastMCP
 
-from reporeaver.logging_config import get_logger
-from reporeaver.models.analysis import RepositoryEvaluation
-from reporeaver.services.github_client import GitHubAPIError, GitHubClient
+from devscope.logging_config import get_logger
+from devscope.models.analysis import RepositoryEvaluation
+from devscope.services.github_client import GitHubAPIError, GitHubClient
 
 log = get_logger(__name__)
 
-# Files at the repo root that signal architectural choices.
 ARCH_SIGNALS: dict[str, str] = {
     "Dockerfile": "containerised",
     "docker-compose.yml": "multi-service local stack",
@@ -49,8 +48,10 @@ def register(mcp: FastMCP, github: GitHubClient) -> None:
     @mcp.tool(
         name="evaluate_repository",
         description=(
-            "Evaluate a single GitHub repository: stack, architecture signals, "
-            "languages, README excerpt, and presence of tests/CI/Dockerfile."
+            "Evaluate a single GitHub repository: primary stack, detected architecture "
+            "signals (Dockerfile, CI, IaC, tests), language breakdown, and a README "
+            "excerpt. Pass the full repository URL "
+            "(e.g. 'https://github.com/owner/repo')."
         ),
     )
     async def evaluate_repository(repo_url: str) -> RepositoryEvaluation:
@@ -91,7 +92,7 @@ def register(mcp: FastMCP, github: GitHubClient) -> None:
             has_tests=has_tests,
             has_ci=has_ci,
             has_dockerfile=has_dockerfile,
-            license=None,  # filled when /license endpoint is added
+            license=None,
             last_pushed=repo.pushed_at,
             architecture_signals=signals,
             url=repo.html_url,

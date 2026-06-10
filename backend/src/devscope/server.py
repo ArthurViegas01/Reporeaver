@@ -1,8 +1,8 @@
 """
 ASGI entrypoint. Composes:
-  - FastAPI app (host) with /health, CORS, lifespan-managed services
-  - FastMCP server mounted under /mcp via streamable HTTP transport
-  - RateLimitMiddleware applied to all incoming requests
+  - FastAPI app (host) with /health and / routes, CORS, lifespan-managed services
+  - FastMCP server mounted under / via streamable HTTP transport (routes /mcp internally)
+  - RateLimitMiddleware applied to all requests as a pure ASGI wrapper
 """
 
 from __future__ import annotations
@@ -13,22 +13,21 @@ from contextlib import asynccontextmanager
 import redis.asyncio as redis_async
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_limiter import FastAPILimiter
 from mcp.server.fastmcp import FastMCP
 
-from reporeaver.config import Settings, get_settings
-from reporeaver.logging_config import configure_logging, get_logger
-from reporeaver.middleware import RateLimitMiddleware
-from reporeaver.services import GitHubClient, LLMService, ProfileAnalyzer
-from reporeaver.services.cache_service import CacheService
-from reporeaver.tools import Services, register_tools
+from devscope.config import Settings, get_settings
+from devscope.logging_config import configure_logging, get_logger
+from devscope.middleware import RateLimitMiddleware
+from devscope.services import GitHubClient, LLMService, ProfileAnalyzer
+from devscope.services.cache_service import CacheService
+from devscope.tools import Services, register_tools
 
 log = get_logger(__name__)
 
 
 def _build_mcp(services: Services, settings: Settings) -> FastMCP:
     mcp = FastMCP(
-        name="reporeaver",
+        name="devscope",
         instructions=(
             "GitHub Portfolio Intel - tools to analyse public GitHub profiles, "
             "evaluate single repositories, cross-check skills against job "
@@ -58,7 +57,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
 
     await redis_client.ping()
-    await FastAPILimiter.init(redis_client)
 
     async with mcp_session_manager.run():
         try:
@@ -66,14 +64,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         finally:
             log.info("server.shutdown")
             await github.aclose()
-            await FastAPILimiter.close()
             await redis_client.aclose()
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
 
-    # Create base clients synchronously (connections are made async when used)
     redis_client = redis_async.from_url(
         str(settings.redis_url), encoding="utf-8", decode_responses=False
     )
@@ -84,7 +80,7 @@ def create_app() -> FastAPI:
     services = Services(github=github, analyzer=analyzer, llm=llm)
 
     app = FastAPI(
-        title="Reporeaver MCP",
+        title="Devscope MCP",
         version="0.1.0",
         description="GitHub Portfolio Intel - MCP server",
         lifespan=lifespan,
@@ -92,37 +88,18 @@ def create_app() -> FastAPI:
     )
 
     mcp = _build_mcp(services, settings)
-    # session_manager is created lazily inside streamable_http_app()
     mcp_asgi = mcp.streamable_http_app()
 
-    # Stash instances on app state for lifespan and healthcheck
     app.state.settings = settings
     app.state.redis = redis_client
     app.state.github = github
     app.state.mcp_session_manager = mcp.session_manager
 
-    # FastMCP v1.x streamable_http_app() has an internal route at /mcp.
-    # Mounting at "/" passes the full path to the sub-app so /mcp is matched.
-    app.mount("/", mcp_asgi)
-
-    # Add Middlewares (must be outside lifespan)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=False,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["*"],
-    )
-
-    app.add_middleware(
-        RateLimitMiddleware,
-        redis_client=redis_client,
-        per_minute=settings.rate_limit_per_minute,
-    )
-
+    # Define FastAPI routes BEFORE mounting the catch-all sub-app so that
+    # Starlette matches /health and / against these routes first.
     @app.get("/health", tags=["meta"])
     async def health() -> dict:
-        """Liveness + readiness probe. Hits Redis to confirm dependency health."""
+        """Liveness and readiness probe. Checks Redis connectivity."""
         s: Settings = app.state.settings
         redis_ok = False
         try:
@@ -142,11 +119,30 @@ def create_app() -> FastAPI:
     @app.get("/", tags=["meta"])
     async def root() -> dict:
         return {
-            "service": "reporeaver",
-            "mcp_endpoint": app.state.settings.mcp_path,
+            "service": "devscope",
+            "mcp_endpoint": "/mcp",
             "docs": "/docs",
             "health": "/health",
         }
+
+    # Mount the FastMCP ASGI app at "/" so /mcp is forwarded into the sub-app.
+    # This must come AFTER the route definitions above.
+    app.mount("/", mcp_asgi)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
+
+    app.add_middleware(
+        RateLimitMiddleware,
+        redis_client=redis_client,
+        per_minute=settings.rate_limit_per_minute,
+        proxy_depth=settings.trusted_proxy_depth,
+    )
 
     return app
 
@@ -155,12 +151,12 @@ app = create_app()
 
 
 def run() -> None:
-    """Console-script entrypoint: `reporeaver` (defined in pyproject.toml)."""
+    """Console-script entrypoint: devscope."""
     import uvicorn
 
     settings = get_settings()
     uvicorn.run(
-        "reporeaver.server:app",
+        "devscope.server:app",
         host=settings.mcp_host,
         port=settings.mcp_port,
         log_level=settings.log_level.lower(),

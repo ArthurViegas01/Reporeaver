@@ -1,19 +1,22 @@
 """
 MCP tool: generate_recruiter_summary(username) - streamed Markdown report.
 
-Streaming uses Context.report_progress to emit incremental tokens to the client.
-The final tool result is the full assembled Markdown - clients can choose to
-either render progress events in real time or wait for the final return value.
+Streaming uses Context.report_progress to emit token deltas to the client.
+Each progress event carries the latest batch of tokens only (not the full
+accumulated text). The final return value is the complete assembled Markdown.
+Clients can render incrementally from deltas or wait for the result.
 """
 
 from __future__ import annotations
 
+from groq import GroqError
 from mcp.server.fastmcp import Context, FastMCP
 
-from reporeaver.logging_config import get_logger
-from reporeaver.services.github_client import GitHubAPIError, GitHubClient
-from reporeaver.services.llm_service import LLMService
-from reporeaver.services.profile_analyzer import ProfileAnalyzer
+from devscope.logging_config import get_logger
+from devscope.services.github_client import GitHubAPIError, GitHubClient
+from devscope.services.llm_service import LLMService
+from devscope.services.profile_analyzer import ProfileAnalyzer
+from devscope.tools.analyze_profile import _validate_username
 
 log = get_logger(__name__)
 
@@ -30,6 +33,8 @@ SYSTEM_PROMPT = (
     "thin, say so explicitly."
 )
 
+_PROGRESS_BATCH = 10
+
 
 def register(
     mcp: FastMCP,
@@ -40,25 +45,24 @@ def register(
     @mcp.tool(
         name="generate_recruiter_summary",
         description=(
-            "Synthesise a streamed Markdown recruiter report for a GitHub user. "
-            "Tokens are emitted as progress events; the final return value is the "
-            "complete Markdown document."
+            "Generate a streamed Markdown recruiter report for a GitHub user. "
+            "Token batches are emitted as progress events so clients can render "
+            "incrementally. The final return value is the complete document. "
+            "Pass a plain GitHub username (e.g. 'torvalds')."
         ),
     )
     async def generate_recruiter_summary(username: str, ctx: Context) -> str:
-        if not username or not username.strip():
-            raise ValueError("username must not be empty")
+        clean = _validate_username(username)
+        log.info("tool.generate_recruiter_summary.start", username=clean)
 
-        log.info("tool.generate_recruiter_summary.start", username=username)
         try:
-            user = await github.get_user(username.strip())
-            repos = await github.list_user_repos(username.strip())
+            user = await github.get_user(clean)
+            repos = await github.list_user_repos(clean)
         except GitHubAPIError as exc:
             raise ValueError(str(exc)) from exc
 
         profile = analyzer.analyze(user, repos)
 
-        # Build the LLM prompt from the structured profile.
         langs = (
             ", ".join(f"{ls.language} {ls.percentage}%" for ls in profile.top_languages)
             or "none reported"
@@ -82,23 +86,30 @@ def register(
         )
 
         chunks: list[str] = []
+        batch_buf: list[str] = []
         token_count = 0
-        async for chunk in llm.astream(SYSTEM_PROMPT, user_prompt):
-            chunks.append(chunk)
-            token_count += 1
-            # Report progress every ~10 chunks - cheaper than per-token I/O.
-            if token_count % 10 == 0:
-                await ctx.report_progress(
-                    progress=token_count,
-                    total=None,
-                    message="".join(chunks),
-                )
+
+        try:
+            async for chunk in llm.astream(SYSTEM_PROMPT, user_prompt):
+                chunks.append(chunk)
+                batch_buf.append(chunk)
+                token_count += 1
+                if token_count % _PROGRESS_BATCH == 0:
+                    await ctx.report_progress(
+                        progress=token_count,
+                        total=None,
+                        message="".join(batch_buf),
+                    )
+                    batch_buf = []
+        except GroqError as exc:
+            raise ValueError(f"LLM service error: {exc}") from exc
+        except Exception as exc:
+            raise ValueError(f"LLM stream failed: {exc}") from exc
 
         markdown = "".join(chunks)
-        await ctx.report_progress(progress=token_count, total=token_count, message=markdown)
         log.info(
             "tool.generate_recruiter_summary.done",
-            username=username,
+            username=clean,
             tokens=token_count,
             length=len(markdown),
         )

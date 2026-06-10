@@ -1,30 +1,22 @@
 # =============================================================================
-# variables.tf - Inputs for the Reporeaver infrastructure
-# -----------------------------------------------------------------------------
-# REGION POLICY (NON-NEGOTIABLE)
-#   The Sao Paulo (gru / sa-* / southamerica-*) datacenters frequently run
-#   out of capacity and degrade availability. The validation blocks below
-#   REJECT any region in those zones at `terraform plan` time, so the policy
-#   is enforced even if someone edits a tfvars file.
+# variables.tf - Infrastructure inputs for Devscope
 #
+# REGION POLICY (enforced via validation blocks below):
+#   Sao Paulo (gru / sa-* / southamerica-*) is REJECTED at plan time.
 #   Allowed Railway regions (US only):
-#     - us-west1   (Pacific Northwest)
-#     - us-west2   (California)
-#     - us-east4   (Virginia)         <-- DEFAULT
+#     us-west1   Pacific Northwest
+#     us-west2   California
+#     us-east4   Virginia  (default)
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Project identity
-# -----------------------------------------------------------------------------
-
 variable "project_name" {
-  description = "Logical project name. Used as a prefix for resources."
+  description = "Logical project name used as a prefix for resources."
   type        = string
-  default     = "reporeaver"
+  default     = "devscope"
 
   validation {
     condition     = can(regex("^[a-z][a-z0-9-]{2,30}$", var.project_name))
-    error_message = "project_name must be lowercase, start with a letter, contain only [a-z0-9-]."
+    error_message = "project_name must be lowercase, start with a letter, and contain only [a-z0-9-]."
   }
 }
 
@@ -39,44 +31,38 @@ variable "environment" {
   }
 }
 
-# -----------------------------------------------------------------------------
-# Region policy - US ONLY
-# -----------------------------------------------------------------------------
-
 variable "railway_region" {
-  description = "Railway region. Must be a US region. Sao Paulo (gru) is BANNED. Allowed: us-west1, us-west2, us-east4."
+  description = "Railway region. Must be a US region. Sao Paulo (gru) is forbidden."
   type        = string
   default     = "us-east4"
 
   validation {
     condition     = contains(["us-west1", "us-west2", "us-east4"], var.railway_region)
-    error_message = "railway_region must be one of: us-west1, us-west2, us-east4. Sao Paulo (gru), sa-*, southamerica-* are explicitly forbidden."
+    error_message = "railway_region must be one of: us-west1, us-west2, us-east4."
   }
 
   validation {
     condition     = !can(regex("(?i)(gru|sa-|sao|southamerica|brazil|br-)", var.railway_region))
-    error_message = "Detected a South American / Sao Paulo region pattern. Forbidden by project policy."
+    error_message = "South American / Sao Paulo regions are forbidden by project policy."
   }
 }
 
-# -----------------------------------------------------------------------------
-# Secrets (TF_VAR_* env vars - never commit)
-# -----------------------------------------------------------------------------
+# Secrets - set via TF_VAR_* environment variables, never in committed files.
 
 variable "railway_token" {
-  description = "Railway API token. Set via env var TF_VAR_railway_token."
+  description = "Railway API token. Set via TF_VAR_railway_token."
   type        = string
   sensitive   = true
 }
 
 variable "netlify_token" {
-  description = "Netlify Personal Access Token. Set via env var TF_VAR_netlify_token."
+  description = "Netlify Personal Access Token. Set via TF_VAR_netlify_token."
   type        = string
   sensitive   = true
 }
 
 variable "github_token" {
-  description = "GitHub Personal Access Token consumed by the MCP backend."
+  description = "GitHub PAT consumed by the MCP backend."
   type        = string
   sensitive   = true
 
@@ -87,7 +73,7 @@ variable "github_token" {
 }
 
 variable "groq_api_key" {
-  description = "Groq API key used by the LLM service (Llama 3 streaming)."
+  description = "Groq API key used by the LLM service."
   type        = string
   sensitive   = true
 
@@ -98,7 +84,7 @@ variable "groq_api_key" {
 }
 
 variable "upstash_redis_url" {
-  description = "Upstash Redis connection URL (rediss://default:<token>@<host>:<port>). Free-tier-friendly cache + rate-limiter store."
+  description = "Upstash Redis URL (rediss://default:<token>@<host>:<port>)."
   type        = string
   sensitive   = true
 
@@ -108,14 +94,12 @@ variable "upstash_redis_url" {
   }
 }
 
-# -----------------------------------------------------------------------------
 # Backend (Railway)
-# -----------------------------------------------------------------------------
 
 variable "backend_image" {
-  description = "Container image for the FastMCP backend (e.g. ghcr.io/<owner>/reporeaver-backend:latest)."
+  description = "Container image for the FastMCP backend."
   type        = string
-  default     = "ghcr.io/arthurpviegas/reporeaver-backend:latest"
+  default     = "ghcr.io/ArthurViegas01/devscope-backend:latest"
 }
 
 variable "backend_cpu" {
@@ -125,7 +109,7 @@ variable "backend_cpu" {
 }
 
 variable "backend_memory_mb" {
-  description = "Memory allocation for the backend service, in MB. 512 keeps Railway credit usage low."
+  description = "Memory allocation for the backend service in MB."
   type        = number
   default     = 512
 
@@ -142,40 +126,34 @@ variable "backend_replicas" {
 }
 
 variable "rate_limit_per_minute" {
-  description = "Per-IP rate limit applied by fastapi-limiter."
+  description = "Per-IP request rate limit applied by the middleware."
   type        = number
   default     = 30
 }
 
-# -----------------------------------------------------------------------------
 # Frontend (Netlify)
-# -----------------------------------------------------------------------------
 
 variable "netlify_site_id" {
-  description = "Netlify site ID. Found at: Netlify UI → Site → Site configuration → Site ID. Set via TF_VAR_netlify_site_id."
+  description = "Netlify site ID. Netlify UI -> Site -> Site configuration -> Site ID."
   type        = string
   sensitive   = true
-  default     = "00000000-0000-0000-0000-000000000000" # placeholder; override in tfvars
+  default     = "00000000-0000-0000-0000-000000000000"
 }
 
 variable "netlify_site_name" {
-  description = "Netlify site subdomain name (e.g. 'reporeaver' → reporeaver.netlify.app). Used for output URLs."
+  description = "Netlify site subdomain (e.g. 'devscope' -> devscope.netlify.app)."
   type        = string
-  default     = "reporeaver"
+  default     = "devscope"
 }
 
 variable "frontend_custom_domain" {
-  description = "Optional custom domain for the frontend. Empty string = use Netlify default."
+  description = "Optional custom domain for the frontend. Empty = use Netlify default."
   type        = string
   default     = ""
 }
 
-# -----------------------------------------------------------------------------
-# Observability
-# -----------------------------------------------------------------------------
-
 variable "log_level" {
-  description = "Log level for the backend (DEBUG, INFO, WARNING, ERROR)."
+  description = "Log level for the backend."
   type        = string
   default     = "INFO"
 

@@ -1,4 +1,4 @@
-"""Structured logging via structlog. JSON in prod, pretty in dev."""
+"""Structured logging via structlog. JSON in production, pretty console in dev."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ import sys
 
 import structlog
 
-from reporeaver.config import get_settings
+from devscope.config import get_settings
 
 
 def configure_logging() -> None:
-    """Configure stdlib logging + structlog. Call once at startup."""
+    """Configure stdlib logging and structlog. Call once at startup."""
     settings = get_settings()
     log_level = getattr(logging, settings.log_level)
 
@@ -26,10 +26,11 @@ def configure_logging() -> None:
         structlog.processors.format_exc_info,
     ]
 
-    if settings.is_production:
-        renderer = structlog.processors.JSONRenderer()
-    else:
-        renderer = structlog.dev.ConsoleRenderer(colors=True)
+    renderer = (
+        structlog.processors.JSONRenderer()
+        if settings.is_production
+        else structlog.dev.ConsoleRenderer(colors=True)
+    )
 
     structlog.configure(
         processors=[*shared_processors, renderer],
@@ -38,12 +39,10 @@ def configure_logging() -> None:
         cache_logger_on_first_use=True,
     )
 
-    # Tame noisy stdlib loggers.
     logging.basicConfig(level=log_level, format="%(message)s", stream=sys.stdout)
     for noisy in ("httpx", "httpcore", "uvicorn.access"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
 def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
-    """Get a bound structlog logger."""
     return structlog.get_logger(name)

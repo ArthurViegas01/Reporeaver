@@ -1,20 +1,20 @@
-"""Unit tests for ProfileAnalyzer - pure-Python, no I/O, fast."""
+"""Unit tests for ProfileAnalyzer - pure Python, no I/O."""
 
 from __future__ import annotations
 
-from reporeaver.services.profile_analyzer import ProfileAnalyzer
+from devscope.services.profile_analyzer import ProfileAnalyzer
 
 
 def test_filters_out_forks_and_archives(sample_user, sample_repos):
     result = ProfileAnalyzer().analyze(sample_user, sample_repos)
-    # legacy-fork (999) and archived (10000) should be excluded -> 1500+300+42 = 1842
+    # legacy-fork (999) and archived (10000) excluded -> 1500+300+42 = 1842
     assert result.total_stars == 1842
 
 
 def test_top_languages_ranked_by_repo_count(sample_user, sample_repos):
     result = ProfileAnalyzer().analyze(sample_user, sample_repos, top_languages_n=3)
     languages = [ls.language for ls in result.top_languages]
-    assert languages[0] == "Python"  # 2 active python repos vs 1 typescript
+    assert languages[0] == "Python"
     assert "TypeScript" in languages
 
 

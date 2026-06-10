@@ -30,30 +30,30 @@ export default function App() {
           {status === "ready" ? (
             <ActiveTab />
           ) : status === "connecting" ? (
-            <div className="card p-8 text-center text-ink-50/60">
+            <div className="card p-8 text-center text-ink-50/55">
               Connecting to MCP server...
             </div>
           ) : (
-            <div className="card border-red-400/30 bg-red-500/5 p-6 text-red-200">
+            <div className="card border-red-400/20 bg-red-500/5 p-6 text-red-300">
               <div className="font-semibold">Cannot connect to MCP server.</div>
               <div className="mt-1 text-sm opacity-80">{error ?? "Unknown error"}</div>
-              <div className="mt-3 text-xs opacity-70">
-                Make sure the backend is running at the URL configured in
-                <code className="mx-1 rounded bg-white/10 px-1 py-0.5">
+              <div className="mt-3 text-xs opacity-60">
+                Make sure the backend is running at the URL configured in{" "}
+                <code className="rounded bg-violet-500/10 px-1 py-0.5 font-mono text-xs">
                   VITE_MCP_SERVER_URL
-                </code>
-                (default: <code>/mcp</code> via the Vite dev proxy).
+                </code>{" "}
+                (default: <code className="font-mono">/mcp</code> via the Vite dev proxy).
               </div>
             </div>
           )}
         </div>
       </main>
 
-      <footer className="mt-10 border-t border-white/5 pt-4 text-center text-xs text-ink-50/40">
-        Reporeaver - GitHub Portfolio Intel - MCP demo client - source on
+      <footer className="mt-10 border-t border-violet-500/10 pt-4 text-center text-xs text-ink-50/35">
+        devscope - GitHub portfolio intelligence via MCP - source on{" "}
         <a
-          href="https://github.com/arthurpviegas/reporeaver"
-          className="ml-1 text-accent-400 underline-offset-2 hover:underline"
+          href="https://github.com/ArthurViegas01/devscope"
+          className="text-accent-400 underline-offset-2 hover:underline"
           target="_blank"
           rel="noreferrer noopener"
         >

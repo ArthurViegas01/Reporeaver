@@ -65,5 +65,11 @@ variable "log_level" {
 
 variable "backend_subdomain" {
   type        = string
-  description = "O subdomínio para o serviço de backend"
+  description = "Subdomain for the backend Railway service."
+}
+
+variable "cors_origins" {
+  description = "Comma-separated list of allowed CORS origins (the Netlify frontend URL)."
+  type        = string
+  default     = ""
 }

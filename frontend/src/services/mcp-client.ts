@@ -35,7 +35,7 @@ async function _connect(): Promise<Client> {
     fetch: makeMcpFetch(url),
   });
   const client = new Client(
-    { name: "reporeaver-frontend", version: "0.1.0" },
+    { name: "devscope-frontend", version: "0.1.0" },
     { capabilities: {} },
   );
   await client.connect(transport);

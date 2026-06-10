@@ -50,8 +50,7 @@ jobs:
       - name: Pytest
         working-directory: backend
         env:
-          # Provided so Pydantic Settings doesn't fail validation at import time.
           GITHUB_TOKEN: dummy_token_for_unit_tests_only_xxxxxxxxxxx
           GROQ_API_KEY: dummy_groq_key_for_unit_tests_only_xxxxxxx
           REDIS_URL: redis://localhost:6379/0
-        run: pytest -ra --cov=reporeaver --cov-report=term-missing
+        run: pytest -ra --cov=devscope --cov-report=term-missing

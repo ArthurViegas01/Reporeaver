@@ -1,10 +1,10 @@
 """
 LLM service - wraps Groq + LangChain.
 
-Two execution modes:
-  - astream(prompt)  : token-by-token async generator (used for the recruiter
-                       summary so the MCP client can render it incrementally)
-  - acomplete(prompt): single-shot completion (used by map_to_job)
+Execution modes:
+  - astream(system, user)          : token-by-token async generator for the
+                                     recruiter summary streaming tool
+  - map_to_job_structured(...)     : structured JSON via LangChain chain
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 
-from reporeaver.config import Settings
+from devscope.config import Settings
 
 
 class LLMService:
@@ -48,11 +48,7 @@ class LLMService:
                 yield content
 
     async def map_to_job_structured(self, profile_summary: str, job_description: str) -> dict:
-        """
-        Use LangChain to produce a structured JSON match.
-
-        Returns a dict matching the JobMatchResult shape (caller validates).
-        """
+        """Produce a structured JSON match via LangChain. Caller validates shape."""
         parser = JsonOutputParser()
         prompt = ChatPromptTemplate.from_messages(
             [

@@ -1,7 +1,7 @@
 /**
  * Frontend types mirroring the backend Pydantic models.
  *
- * Keep these in sync with backend/src/reporeaver/models/analysis.py.
+ * Keep these in sync with backend/src/devscope/models/analysis.py.
  * In a larger project we'd auto-generate these from FastAPI's OpenAPI schema,
  * but for a demo a manually-maintained mirror is clearer.
  */

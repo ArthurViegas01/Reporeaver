@@ -38,9 +38,14 @@ node_modules/
 coverage/
 frontend/dist/
 
+# --- IDE / tool session state ---
+.claude/settings.local.json
+
+# --- TypeScript build cache ---
+*.tsbuildinfo
+
 # --- Terraform ---
 .terraform/
-.terraform.lock.hcl
 *.tfstate
 *.tfstate.*
 *.tfvars

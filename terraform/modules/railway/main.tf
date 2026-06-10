@@ -12,7 +12,7 @@ terraform {
 
 resource "railway_project" "this" {
   name        = var.project_name
-  description = "GitHub Portfolio Intel -- MCP server (region: ${var.region})"
+  description = "GitHub Portfolio Intel - MCP server (region: ${var.region})"
   private     = false
 }
 
@@ -37,7 +37,6 @@ locals {
   backend_env = {
     MCP_HOST              = "0.0.0.0"
     MCP_PORT              = "8000"
-    MCP_TRANSPORT         = "streamable-http"
     ENVIRONMENT           = "production"
     LOG_LEVEL             = var.log_level
     GITHUB_TOKEN          = var.github_token
@@ -45,6 +44,8 @@ locals {
     REDIS_URL             = var.upstash_redis_url
     RATE_LIMIT_PER_MINUTE = tostring(var.rate_limit_per_minute)
     DEPLOY_REGION         = var.region
+    CORS_ORIGINS          = var.cors_origins
+    TRUSTED_PROXY_DEPTH   = "1"
   }
 }
 

@@ -8,7 +8,7 @@ variable "site_id" {
 }
 
 variable "site_name" {
-  description = "Netlify site subdomain (e.g. 'reporeaver' -> reporeaver.netlify.app). Used for output URLs only."
+  description = "Netlify site subdomain (e.g. 'devscope' -> devscope.netlify.app). Used for output URLs only."
   type        = string
 }
 

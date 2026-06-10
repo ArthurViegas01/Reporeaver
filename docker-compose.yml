@@ -1,21 +1,21 @@
 # =============================================================================
-# Reporeaver — GitHub Portfolio Intel
-# Local development stack: FastMCP server + Redis + (optional) Frontend (Vite)
-# -----------------------------------------------------------------------------
+# Devscope - GitHub Portfolio Intel
+# Local development stack: FastMCP server + Redis
+#
 # Usage:
 #   cp backend/.env.example backend/.env   # fill in GITHUB_TOKEN, GROQ_API_KEY
 #   docker compose up --build
 #
 # The MCP server listens on http://localhost:8000 (Streamable HTTP transport).
-# Redis is exposed locally for debugging only (do NOT expose in production).
+# Redis is bound to 127.0.0.1 only - never expose in production.
 # =============================================================================
 
-name: reporeaver
+name: devscope
 
 services:
   redis:
     image: redis:7.2-alpine
-    container_name: reporeaver-redis
+    container_name: devscope-redis
     restart: unless-stopped
     command:
       - redis-server
@@ -38,30 +38,27 @@ services:
       retries: 10
       start_period: 5s
     networks:
-      - reporeaver-net
+      - devscope-net
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
       target: development
-    container_name: reporeaver-backend
+    container_name: devscope-backend
     restart: unless-stopped
     env_file:
       - ./backend/.env
     environment:
-      # Redis URL is composed here so devs only set REDIS_PASSWORD in .env
       REDIS_URL: redis://:${REDIS_PASSWORD:-devpassword}@redis:6379/0
       MCP_HOST: 0.0.0.0
       MCP_PORT: "8000"
-      MCP_TRANSPORT: streamable-http
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: development
       PYTHONPATH: /app/src
     ports:
       - "8000:8000"
     volumes:
-      # Hot-reload: mount source for fast feedback in dev
       - ./backend/src:/app/src:ro
       - ./backend/tests:/app/tests:ro
     depends_on:
@@ -74,21 +71,21 @@ services:
       retries: 5
       start_period: 20s
     networks:
-      - reporeaver-net
+      - devscope-net
 
-  # Frontend is intentionally optional for the local stack.
-  # Most front-end devs prefer running Vite directly on the host (`npm run dev`)
-  # for the fastest HMR. Uncomment to run it inside Docker.
+  # Frontend is intentionally optional. Most frontend devs prefer running
+  # Vite directly on the host (npm run dev) for fastest HMR.
+  # Uncomment to run inside Docker.
   #
   # frontend:
   #   build:
   #     context: ./frontend
   #     dockerfile: Dockerfile
   #     target: development
-  #   container_name: reporeaver-frontend
+  #   container_name: devscope-frontend
   #   restart: unless-stopped
   #   environment:
-  #     VITE_MCP_SERVER_URL: http://localhost:8000
+  #     VITE_MCP_SERVER_URL: http://localhost:8000/mcp
   #   ports:
   #     - "5173:5173"
   #   volumes:
@@ -98,12 +95,12 @@ services:
   #     backend:
   #       condition: service_healthy
   #   networks:
-  #     - reporeaver-net
+  #     - devscope-net
 
 volumes:
   redis-data:
     driver: local
 
 networks:
-  reporeaver-net:
+  devscope-net:
     driver: bridge
