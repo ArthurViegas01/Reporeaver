@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import BackgroundFX from "@/components/BackgroundFX";
 import Footer from "@/components/Footer";
+import HealthBadge from "@/components/HealthBadge";
 import SiteHeader from "@/components/SiteHeader";
 import type { TabId } from "@/components/TabNav";
 import Workspace from "@/components/Workspace";
@@ -26,7 +27,7 @@ export default function App() {
   return (
     <div id="top">
       <BackgroundFX />
-      <SiteHeader status={status} error={error} health={health} />
+      <SiteHeader />
 
       <main>
         <div className="mx-auto max-w-6xl px-4">
@@ -36,11 +37,14 @@ export default function App() {
         </div>
 
         <section ref={workspaceRef} id="workspace" className="mx-auto max-w-5xl scroll-mt-24 px-4 pb-24 pt-10">
-          <div className="mb-6">
-            <h2 className="text-display-sm font-semibold text-ink-50">Workspace</h2>
-            <p className="mt-2 text-sm text-ink-300/70">
-              Four MCP tools, live against the production backend. Pick one and run it.
-            </p>
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-display-sm font-semibold text-ink-50">Workspace</h2>
+              <p className="mt-2 text-sm text-ink-300/70">
+                Four MCP tools, live against the production backend. Pick one and run it.
+              </p>
+            </div>
+            <HealthBadge status={status} error={error} health={health} />
           </div>
           <Workspace active={active} onChange={setActive} status={status} error={error} />
         </section>

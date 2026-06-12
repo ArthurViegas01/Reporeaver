@@ -23,7 +23,7 @@ const RING: Record<"ok" | "warn" | "error", string> = {
 
 export default function HealthBadge({ status, error, health }: Props) {
   // A "degraded" backend (e.g. Redis down) is expected and reported as a
-  // warning, never an error — only a failed MCP connection is an error.
+  // warning, never an error. Only a failed MCP connection is an error.
   let level: "ok" | "warn" | "error" = "warn";
   let label = "connecting";
   if (status === "ready") {

@@ -34,7 +34,7 @@ export default function Hero({ onStart }: { onStart: () => void }) {
 
         <motion.p variants={item} className="mx-auto mt-6 max-w-xl text-base text-ink-200/70 sm:text-lg">
           Devscope is an MCP server that reads public GitHub data and turns it into recruiter-grade
-          insight — profile analysis, repository evaluation, job-fit scoring, and live-streamed
+          insight: profile analysis, repository evaluation, job-fit scoring, and live-streamed
           summaries.
         </motion.p>
 

@@ -8,7 +8,7 @@ const STEPS = [
     icon: Plug,
     kicker: "01",
     title: "Connect over MCP",
-    body: "The browser speaks the Model Context Protocol to a FastMCP server over streamable HTTP — the same protocol agents use.",
+    body: "The browser speaks the Model Context Protocol to a FastMCP server over streamable HTTP, the same protocol agents use.",
   },
   {
     icon: Wrench,
@@ -20,7 +20,7 @@ const STEPS = [
     icon: Sparkles,
     kicker: "03",
     title: "Reason with an LLM",
-    body: "Groq-hosted Llama 3.3 turns raw signals into candid, recruiter-grade insight — streamed back token by token.",
+    body: "Groq-hosted Llama 3.3 turns raw signals into candid, recruiter-grade insight, streamed back token by token.",
   },
 ];
 
@@ -40,7 +40,7 @@ export default function HowItWorks() {
       <div className="mb-8 text-center">
         <h2 className="text-display-sm font-semibold text-ink-50">How it works</h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-ink-300/70">
-          A real MCP pipeline, not a mockup — wired end to end.
+          A real MCP pipeline, not a mockup. Wired end to end.
         </p>
       </div>
 

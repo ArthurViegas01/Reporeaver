@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Add a soft violet glow + ring — use for hero / featured surfaces. */
+  /** Add a soft violet glow + ring for hero / featured surfaces. */
   glow?: boolean;
   /** Lift slightly on hover. */
   interactive?: boolean;

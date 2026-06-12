@@ -1,6 +1,6 @@
 /**
  * Fixed, non-interactive background layer: a masked grid plus two drifting
- * violet "aurora" blobs. Purely decorative — hidden from the a11y tree and
+ * violet "aurora" blobs. Purely decorative: hidden from the a11y tree and
  * frozen under prefers-reduced-motion (see index.css).
  */
 export default function BackgroundFX() {

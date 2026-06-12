@@ -1,5 +1,5 @@
 /**
- * `cn` — merge conditional class names and de-dupe conflicting Tailwind
+ * `cn`: merge conditional class names and de-dupe conflicting Tailwind
  * utilities (the last one wins). Used by every UI primitive.
  */
 import { clsx, type ClassValue } from "clsx";
