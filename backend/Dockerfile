@@ -89,4 +89,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD python -c "import os,urllib.request,sys; p=os.environ.get('PORT','8000'); sys.exit(0 if urllib.request.urlopen('http://localhost:'+p+'/health', timeout=2).status==200 else 1)" || exit 1
 
-CMD ["sh", "-c", "exec python -m uvicorn devscope.server:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"]
+# Single worker: the MCP streamable-HTTP session manager keeps session state
+# in-process, so a second worker would not see sessions created by the first
+# ("Session not found" on the streaming recruiter-summary tool). One Railway
+# replica with one worker keeps every request on the same session store.
+CMD ["sh", "-c", "exec python -m uvicorn devscope.server:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
