@@ -7,11 +7,12 @@ required secret is missing - fail-fast over silent misconfig.
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, RedisDsn, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -55,7 +56,11 @@ class Settings(BaseSettings):
     )
 
     # CORS
-    cors_origins: list[str] = Field(
+    # NoDecode stops pydantic-settings from JSON-decoding the env var at the
+    # source level (which crashed the app when CORS_ORIGINS was a plain CSV
+    # string). The before-validator below now owns parsing and accepts both a
+    # CSV string and a JSON array string.
+    cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://localhost:3000"]
     )
 
@@ -63,7 +68,16 @@ class Settings(BaseSettings):
     @classmethod
     def _split_csv(cls, v: object) -> object:
         if isinstance(v, str):
-            return [s.strip() for s in v.split(",") if s.strip()]
+            s = v.strip()
+            if not s:
+                return []
+            # Tolerate a JSON array string too, so either format works.
+            if s.startswith("["):
+                try:
+                    return json.loads(s)
+                except json.JSONDecodeError:
+                    pass
+            return [item.strip() for item in s.split(",") if item.strip()]
         return v
 
     @property

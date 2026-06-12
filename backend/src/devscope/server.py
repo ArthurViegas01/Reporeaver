@@ -7,6 +7,7 @@ ASGI entrypoint. Composes:
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -56,7 +57,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         model=settings.groq_model,
     )
 
-    await redis_client.ping()
+    # Fail open: a Redis outage (or an unreachable REDIS_URL) must not take the
+    # whole server down at boot. Bound the probe with a timeout so a hanging
+    # TCP connect can't block uvicorn from ever accepting traffic (the cause of
+    # a "running but 502" deploy). Caching + rate-limiting already tolerate
+    # Redis errors; /health reports "degraded" in this state.
+    try:
+        await asyncio.wait_for(redis_client.ping(), timeout=5.0)
+    except Exception:  # noqa: BLE001
+        log.warning("server.redis_unavailable_at_startup")
 
     async with mcp_session_manager.run():
         try:
@@ -135,6 +144,9 @@ def create_app() -> FastAPI:
         allow_credentials=False,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
+        # The MCP streamable-HTTP transport reads the session id from this
+        # response header; cross-origin it stays hidden from JS unless exposed.
+        expose_headers=["mcp-session-id"],
     )
 
     app.add_middleware(
