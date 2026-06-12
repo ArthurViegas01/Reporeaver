@@ -114,28 +114,47 @@ Terraform creates:
 After `apply` completes, note the outputs:
 
 ```bash
-terraform output backend_public_url   # e.g. https://devscope-backend.up.railway.app/mcp
-terraform output frontend_public_url  # e.g. https://devscope.netlify.app
+terraform output backend_public_url   # e.g. https://devscope-mcp-production.up.railway.app
+terraform output frontend_url         # e.g. https://devscope.netlify.app
 ```
 
 ---
 
 ## 5. GitHub Actions secrets
 
-CI needs these secrets to build, push, and deploy:
+The `backend-build-push` workflow logs in to GHCR with the **automatic** `GITHUB_TOKEN` (no secret to set). You only need to add secrets for the optional Railway redeploy trigger and for the `infra-apply` workflow.
+
+For the automatic image-push → Railway-redeploy loop (`backend-build-push.yml`):
 
 ```bash
-# Container registry write access (GHCR)
-gh secret set GHCR_TOKEN --body "$(echo $TF_VAR_github_token)"
-
-# Terraform Cloud token (if using Terraform Cloud)
-gh secret set TF_API_TOKEN --body "your-terraform-cloud-token"
-
-# Railway deploy token (for triggering re-deploys after image push)
-gh secret set RAILWAY_TOKEN --body "$(echo $TF_VAR_railway_token)"
+gh secret set RAILWAY_TOKEN          --body "$TF_VAR_railway_token"
+gh secret set RAILWAY_SERVICE_ID     --body "your-railway-service-id"
+gh secret set RAILWAY_ENVIRONMENT_ID --body "your-railway-environment-id"
 ```
 
-The `backend-build-push` workflow triggers on every push to `main`, builds the Docker image, and pushes to `ghcr.io/ArthurViegas01/devscope-backend:latest`. Railway is configured to redeploy automatically when the image tag is updated.
+If `RAILWAY_TOKEN`/`RAILWAY_SERVICE_ID` are absent, the build still pushes the image; only the auto-redeploy step is skipped (Railway also redeploys on its own when the `latest` tag moves).
+
+For running `terraform apply` from the Actions tab (`infra-apply.yml`):
+
+```bash
+gh secret set NETLIFY_TOKEN          --body "$TF_VAR_netlify_token"
+gh secret set NETLIFY_SITE_ID        --body "$TF_VAR_netlify_site_id"
+gh secret set GITHUB_PAT_FOR_BACKEND --body "$TF_VAR_github_token"
+gh secret set GROQ_API_KEY           --body "$TF_VAR_groq_api_key"
+gh secret set UPSTASH_REDIS_URL      --body "$TF_VAR_upstash_redis_url"
+# RAILWAY_TOKEN is reused from above
+```
+
+The `backend-build-push` workflow triggers on every push to `main` that touches `backend/**`, builds the Docker image, and pushes to `ghcr.io/<owner>/devscope-backend:latest`.
+
+### Make the GHCR package public (required)
+
+The pushed image inherits the repository's visibility. If the repo is private, the image package is **private**, and Railway cannot pull it (this Terraform config does not set registry credentials on the Railway service). After the first successful push:
+
+1. Go to `https://github.com/users/<owner>/packages/container/devscope-backend/settings`
+2. Under **Danger Zone → Change visibility**, set it to **Public**.
+
+Alternatively, keep it private and add registry credentials to the Railway service in the Railway dashboard (Service → Settings → Source → private registry).
 
 ---
 
@@ -225,7 +244,7 @@ git push origin main
 |----------|----------|---------|-------|
 | `GITHUB_TOKEN` | Yes | - | GitHub PAT with `public_repo` read scope |
 | `GROQ_API_KEY` | Yes | - | Groq console API key |
-| `UPSTASH_REDIS_URL` | Yes | - | Full `rediss://` URL with token |
+| `REDIS_URL` | Yes | - | Full `rediss://` Upstash URL with token (the app reads `REDIS_URL`; Terraform sets it from `TF_VAR_upstash_redis_url`) |
 | `CORS_ORIGINS` | Yes (prod) | `http://localhost:5173` | Comma-separated list of allowed origins |
 | `GROQ_MODEL` | No | `llama-3.3-70b-versatile` | Groq model ID |
 | `RATE_LIMIT_PER_MINUTE` | No | `30` | Requests per IP per minute |

@@ -16,8 +16,11 @@
 # =============================================================================
 
 locals {
-  resource_prefix   = "${var.project_name}-${var.environment}"
-  backend_subdomain = "${var.project_name}-api-${var.environment}"
+  resource_prefix = "${var.project_name}-${var.environment}"
+  # Railway subdomains are globally unique and claimed first-come-first-served.
+  # "devscope-api-production" is already taken by an unrelated service, so we
+  # use the "-mcp-" stem. If apply fails with a subdomain conflict, change this.
+  backend_subdomain    = "${var.project_name}-mcp-${var.environment}"
   netlify_frontend_url = "https://${var.netlify_site_name}.netlify.app"
 }
 

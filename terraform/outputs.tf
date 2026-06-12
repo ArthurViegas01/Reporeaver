@@ -26,3 +26,13 @@ output "deployed_region" {
   description = "Region where the backend is running. Should be a US region."
   value       = var.railway_region
 }
+
+output "backend_service_id" {
+  description = "Railway service ID - set as the RAILWAY_SERVICE_ID GitHub Actions secret."
+  value       = module.railway.service_id
+}
+
+output "backend_environment_id" {
+  description = "Railway environment ID - set as the RAILWAY_ENVIRONMENT_ID GitHub Actions secret."
+  value       = module.railway.environment_id
+}
