@@ -46,6 +46,10 @@ class GitHubClient:
             },
             timeout=httpx.Timeout(15.0, connect=5.0),
             http2=False,
+            # GitHub returns 301 for renamed/moved repos (e.g. anthropics/
+            # anthropic-cookbook). Without this, the redirect body is fed to the
+            # model and fails validation. Same-host redirects keep the auth header.
+            follow_redirects=True,
         )
 
     async def aclose(self) -> None:

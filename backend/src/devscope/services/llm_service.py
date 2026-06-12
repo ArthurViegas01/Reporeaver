@@ -67,6 +67,10 @@ class LLMService:
                 ),
             ]
         )
-        chain = prompt | self._chat | parser
+        # Force Groq JSON mode so the model can't emit prose or fenced output
+        # that breaks JsonOutputParser (OUTPUT_PARSING_FAILURE). Groq enables
+        # this only when the prompt mentions "JSON" — the system prompt does.
+        chat = self._chat.bind(response_format={"type": "json_object"})
+        chain = prompt | chat | parser
         result = await chain.ainvoke({"profile": profile_summary, "job": job_description})
         return result if isinstance(result, dict) else {}
