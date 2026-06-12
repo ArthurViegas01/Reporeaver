@@ -1,4 +1,4 @@
-import { CheckCircle2, GitBranch, XCircle } from "lucide-react";
+import { CheckCircle2, FlaskConical, GitBranch, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import ResultPanel from "@/components/ResultPanel";
@@ -13,6 +13,13 @@ export default function RepoEvaluator() {
     e.preventDefault();
     if (!url.trim()) return;
     tool.run({ repo_url: url.trim() }).catch(() => undefined);
+  };
+
+  // Self-test: evaluate this project's own public repo in one click.
+  const runTest = () => {
+    const sample = "https://github.com/ArthurViegas01/Devscope";
+    setUrl(sample);
+    tool.run({ repo_url: sample }).catch(() => undefined);
   };
 
   return (
@@ -30,6 +37,16 @@ export default function RepoEvaluator() {
           <button type="submit" className="btn-primary" disabled={tool.loading}>
             <GitBranch className="h-4 w-4" />
             Evaluate
+          </button>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={runTest}
+            disabled={tool.loading}
+            title="Run a sample request (ArthurViegas01/Devscope)"
+          >
+            <FlaskConical className="h-4 w-4" />
+            Test
           </button>
         </div>
       </form>

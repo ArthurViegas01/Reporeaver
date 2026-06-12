@@ -1,4 +1,4 @@
-import { Search, Star, Users } from "lucide-react";
+import { FlaskConical, Search, Star, Users } from "lucide-react";
 import { useState } from "react";
 
 import ResultPanel from "@/components/ResultPanel";
@@ -13,6 +13,12 @@ export default function ProfileAnalyzer() {
     e.preventDefault();
     if (!username.trim()) return;
     tool.run({ username: username.trim() }).catch(() => undefined);
+  };
+
+  // Self-test: fill a known-good username and fire the tool in one click.
+  const runTest = () => {
+    setUsername("torvalds");
+    tool.run({ username: "torvalds" }).catch(() => undefined);
   };
 
   return (
@@ -32,6 +38,16 @@ export default function ProfileAnalyzer() {
           <button type="submit" className="btn-primary" disabled={tool.loading}>
             <Search className="h-4 w-4" />
             Analyze
+          </button>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={runTest}
+            disabled={tool.loading}
+            title="Run a sample request (torvalds)"
+          >
+            <FlaskConical className="h-4 w-4" />
+            Test
           </button>
         </div>
       </form>
