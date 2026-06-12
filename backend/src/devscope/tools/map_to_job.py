@@ -53,9 +53,7 @@ def register(
     async def map_to_job(username: str, job_description: str) -> JobMatchResult:
         clean = _validate_username(username)
         if not job_description or len(job_description.strip()) < 30:
-            raise ValueError(
-                "job_description must be at least 30 characters of meaningful text"
-            )
+            raise ValueError("job_description must be at least 30 characters of meaningful text")
 
         log.info("tool.map_to_job.start", username=clean)
         try:
