@@ -13,7 +13,10 @@ from devscope.services.profile_analyzer import ProfileAnalyzer
 
 log = get_logger(__name__)
 
-_USERNAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9\-]{0,37}[a-zA-Z0-9]?$")
+# GitHub username: 1-39 chars, alphanumeric or hyphen, may not start or end
+# with a hyphen. The trailing alnum is required *inside* the optional group, so
+# a single char is valid but a trailing hyphen is not.
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$")
 
 
 def _validate_username(username: str) -> str:
