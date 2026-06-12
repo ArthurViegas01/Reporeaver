@@ -3,54 +3,126 @@
 @tailwind utilities;
 
 @layer base {
-  :root { color-scheme: dark; }
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
 
   body {
-    background: radial-gradient(1400px 700px at 50% -5%, #1C1838 0%, #0D0A1A 55%);
-    min-height: 100vh;
+    @apply min-h-screen bg-ink-950 font-sans text-ink-50 antialiased;
+    /* Layered radial wash — the animated aurora lives in <BackgroundFX />. */
+    background-image:
+      radial-gradient(1200px 600px at 50% -8%, rgba(124, 58, 237, 0.2), transparent 60%),
+      radial-gradient(900px 520px at 100% 0%, rgba(91, 33, 182, 0.12), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(139, 92, 246, 0.32);
+    color: #fff;
+  }
+
+  /* Visible, on-brand focus ring for keyboard users. */
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-violet-400/70 ring-offset-2 ring-offset-ink-950;
+  }
+
+  /* Slim, themed scrollbars. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme("colors.violet.700") transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full border-2 border-solid border-transparent bg-violet-700/70 bg-clip-content;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-violet-600;
+  }
+
+  /* Honour reduced-motion for CSS animations (framer-motion is handled by MotionConfig). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-violet-500/10 bg-ink-900/90 backdrop-blur-sm;
+    @apply rounded-2xl border border-violet-500/10 bg-ink-900/70 shadow-card backdrop-blur-md;
+  }
+
+  .panel {
+    @apply rounded-xl border border-white/5 bg-white/[0.025];
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2
-           font-medium text-white transition-colors duration-150
-           hover:bg-violet-500 active:bg-violet-700
-           disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-violet-500
+           to-violet-600 px-4 py-2.5 text-sm font-semibold text-white
+           shadow-[0_8px_24px_-10px_rgba(124,58,237,0.9)] transition-all duration-200
+           hover:from-violet-400 hover:to-violet-500 hover:shadow-[0_12px_32px_-8px_rgba(124,58,237,1)]
+           active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 rounded-lg border border-violet-500/15 px-3 py-2
-           text-sm text-ink-50/80 transition-colors duration-150
-           hover:bg-violet-500/10 hover:border-violet-500/25;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-violet-500/15
+           bg-white/[0.02] px-3.5 py-2 text-sm text-ink-100/80 transition-all duration-200
+           hover:border-violet-400/30 hover:bg-violet-500/10 hover:text-ink-50;
   }
 
   .input {
-    @apply w-full rounded-lg border border-violet-500/15 bg-ink-950/60 px-3 py-2
-           text-ink-50 placeholder:text-ink-50/35
-           transition-colors duration-150
-           focus:border-violet-500 focus:outline-none
-           focus:ring-2 focus:ring-violet-500/25;
+    @apply w-full rounded-xl border border-violet-500/15 bg-ink-950/60 px-3.5 py-2.5 text-sm text-ink-50
+           placeholder:text-ink-400/60 transition-colors duration-150
+           focus:border-violet-500/60 focus:outline-none focus:ring-2 focus:ring-violet-500/25;
   }
 
   .label {
-    @apply block text-xs font-medium uppercase tracking-wider text-ink-50/55;
+    @apply block text-[11px] font-medium uppercase tracking-[0.14em] text-ink-300/70;
+  }
+
+  /* Subtle masked grid used by <BackgroundFX />. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(139, 92, 246, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(139, 92, 246, 0.06) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 75% 55% at 50% 0%, #000 35%, transparent 78%);
+    mask-image: radial-gradient(ellipse 75% 55% at 50% 0%, #000 35%, transparent 78%);
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-br from-white via-ink-100 to-violet-200 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-violet {
+    @apply bg-gradient-to-r from-violet-200 via-violet-400 to-violet-500 bg-clip-text text-transparent;
   }
 }
 
 @layer components {
-  .markdown h1     { @apply mt-2 mb-3 text-xl font-semibold text-ink-50; }
-  .markdown h2     { @apply mt-4 mb-2 text-base font-semibold text-accent-400; }
-  .markdown h3     { @apply mt-3 mb-1 text-sm font-semibold text-ink-50; }
-  .markdown p      { @apply mb-2 text-sm leading-relaxed text-ink-50/85; }
-  .markdown ul     { @apply mb-2 list-disc pl-5 text-sm text-ink-50/85; }
-  .markdown ol     { @apply mb-2 list-decimal pl-5 text-sm text-ink-50/85; }
+  .markdown h1     { @apply mb-3 mt-2 text-xl font-semibold text-ink-50; }
+  .markdown h2     { @apply mb-2 mt-5 text-base font-semibold text-accent-300; }
+  .markdown h3     { @apply mb-1 mt-3 text-sm font-semibold text-ink-50; }
+  .markdown p      { @apply mb-2 text-sm leading-relaxed text-ink-100/85; }
+  .markdown ul     { @apply mb-2 list-disc pl-5 text-sm text-ink-100/85; }
+  .markdown ol     { @apply mb-2 list-decimal pl-5 text-sm text-ink-100/85; }
   .markdown li     { @apply mb-1; }
   .markdown code   { @apply rounded bg-violet-500/10 px-1 py-0.5 font-mono text-xs text-accent-300; }
   .markdown a      { @apply text-accent-400 underline-offset-2 hover:underline; }
   .markdown strong { @apply font-semibold text-ink-50; }
+  .markdown table  { @apply my-3 w-full border-collapse text-sm; }
+  .markdown th     { @apply border-b border-violet-500/20 px-2 py-1 text-left font-semibold text-ink-100; }
+  .markdown td     { @apply border-b border-white/5 px-2 py-1 text-ink-100/80; }
 }

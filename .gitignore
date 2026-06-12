@@ -40,6 +40,7 @@ frontend/dist/
 
 # --- IDE / tool session state ---
 .claude/settings.local.json
+.claude/launch.json
 
 # --- TypeScript build cache ---
 *.tsbuildinfo
