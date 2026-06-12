@@ -1,4 +1,4 @@
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, FlaskConical, Loader2 } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -13,6 +13,12 @@ export default function RecruiterSummary() {
     e.preventDefault();
     if (!username.trim()) return;
     tool.run({ username: username.trim() }).catch(() => undefined);
+  };
+
+  // Self-test: stream a summary for a known user in one click.
+  const runTest = () => {
+    setUsername("torvalds");
+    tool.run({ username: "torvalds" }).catch(() => undefined);
   };
 
   const showStreaming = tool.loading && tool.partial.length > 0;
@@ -37,6 +43,16 @@ export default function RecruiterSummary() {
               <FileText className="h-4 w-4" />
             )}
             Generate
+          </button>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={runTest}
+            disabled={tool.loading}
+            title="Run a sample request (torvalds)"
+          >
+            <FlaskConical className="h-4 w-4" />
+            Test
           </button>
         </div>
         <p className="mt-2 text-xs text-ink-50/50">

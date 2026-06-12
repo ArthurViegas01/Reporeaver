@@ -1,4 +1,4 @@
-import { Briefcase, ChevronRight } from "lucide-react";
+import { Briefcase, ChevronRight, FlaskConical } from "lucide-react";
 import { useState } from "react";
 
 import ResultPanel from "@/components/ResultPanel";
@@ -17,6 +17,15 @@ export default function JobMatcher() {
     e.preventDefault();
     if (!username.trim() || job.trim().length < 30) return;
     tool.run({ username: username.trim(), job_description: job.trim() }).catch(() => undefined);
+  };
+
+  // Self-test: fill a known user + the sample job and fire the tool in one click.
+  const runTest = () => {
+    setUsername("torvalds");
+    setJob(SAMPLE_JOB);
+    tool
+      .run({ username: "torvalds", job_description: SAMPLE_JOB.trim() })
+      .catch(() => undefined);
   };
 
   return (
@@ -40,10 +49,22 @@ export default function JobMatcher() {
             onChange={(e) => setJob(e.target.value)}
           />
         </div>
-        <button type="submit" className="btn-primary" disabled={tool.loading}>
-          <Briefcase className="h-4 w-4" />
-          Match
-        </button>
+        <div className="flex gap-2">
+          <button type="submit" className="btn-primary" disabled={tool.loading}>
+            <Briefcase className="h-4 w-4" />
+            Match
+          </button>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={runTest}
+            disabled={tool.loading}
+            title="Run a sample request (torvalds + sample job)"
+          >
+            <FlaskConical className="h-4 w-4" />
+            Test
+          </button>
+        </div>
       </form>
 
       <ResultPanel
